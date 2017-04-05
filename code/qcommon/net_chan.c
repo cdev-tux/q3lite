@@ -104,6 +104,8 @@ void Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, int 
 #ifdef LEGACY_PROTOCOL
 	chan->compat = compat;
 #endif
+
+	chan->isLANAddress = Sys_IsLANAddress( adr );
 }
 
 /*

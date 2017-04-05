@@ -237,12 +237,15 @@ typedef struct {
 	byte		unsentBuffer[MAX_MSGLEN];
 
 	int			challenge;
-	int		lastSentTime;
-	int		lastSentSize;
+	int			lastSentTime;
+	int			lastSentSize;
 
 #ifdef LEGACY_PROTOCOL
 	qboolean	compat;
 #endif
+
+	qboolean	isLANAddress;
+	
 } netchan_t;
 
 void Netchan_Init( int qport );

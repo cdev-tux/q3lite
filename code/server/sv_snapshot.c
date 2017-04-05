@@ -651,6 +651,7 @@ void SV_SendClientMessages(void)
 {
 	int		i;
 	client_t	*c;
+	qboolean lanRate;
 
 	// send a message to each connected client
 	for(i=0; i < sv_maxclients->integer; i++)
@@ -682,6 +683,17 @@ void SV_SendClientMessages(void)
 				c->rateDelayed = qtrue;
 				continue;
 			}
+			// It's not time yet
+			continue;
+		}
+
+		lanRate = c->netchan.remoteAddress.type == NA_LOOPBACK || (sv_lanForceRate->integer && c->netchan.isLANAddress);
+
+		if ( !lanRate && SV_RateMsec( c ) > 0 )
+		{
+			// Not enough time since last packet passed through the line
+			c->rateDelayed = qtrue;
+			continue;
 		}
 
 		// generate and send a new message

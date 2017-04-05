@@ -441,13 +441,13 @@ void SV_DirectConnect( netadr_t from ) {
 
 		// never reject a LAN client based on ping
 		if ( !Sys_IsLANAddress( from ) ) {
-			if ( sv_minPing->value && ping < sv_minPing->value ) {
+			if ( sv_minPing->integer && ping < sv_minPing->integer ) {
 				NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for high pings only\n" );
 				Com_DPrintf ("Client %i rejected on a too low ping\n", i);
 				challengeptr->wasrefused = qtrue;
 				return;
 			}
-			if ( sv_maxPing->value && ping > sv_maxPing->value ) {
+			if ( sv_maxPing->integer && ping > sv_maxPing->integer ) {
 				NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for low pings only\n" );
 				Com_DPrintf ("Client %i rejected on a too high ping\n", i);
 				challengeptr->wasrefused = qtrue;
@@ -460,16 +460,16 @@ void SV_DirectConnect( netadr_t from ) {
 	}
 
 	newcl = &temp;
-	Com_Memset (newcl, 0, sizeof(client_t));
+	Com_Memset( newcl, 0, sizeof(client_t) );
 
 	// if there is already a slot for this ip, reuse it
 	for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++) {
 		if ( cl->state == CS_FREE ) {
 			continue;
 		}
-		if ( NET_CompareBaseAdr( from, cl->netchan.remoteAddress )
-			&& ( cl->netchan.qport == qport 
-			|| from.port == cl->netchan.remoteAddress.port ) ) {
+		if ( NET_CompareBaseAdr( from, cl->netchan.remoteAddress ) \
+			&& ( cl->netchan.qport == qport || from.port == cl->netchan.remoteAddress.port ) ) {
+
 			Com_Printf ("%s:reconnect\n", NET_AdrToString (from));
 			newcl = cl;
 
@@ -1403,6 +1403,7 @@ void SV_UserinfoChanged( client_t *cl ) {
 	char	*ip;
 	int		i;
 	int	len;
+	const int maxRate = 100000;
 
 	// name for C code
 	Q_strncpyz( cl->name, Info_ValueForKey (cl->userinfo, "name"), sizeof(cl->name) );
@@ -1411,8 +1412,8 @@ void SV_UserinfoChanged( client_t *cl ) {
 
 	// if the client is on the same subnet as the server and we aren't running an
 	// internet public server, assume they don't need a rate choke
-	if ( Sys_IsLANAddress( cl->netchan.remoteAddress ) && com_dedicated->integer != 2 && sv_lanForceRate->integer == 1) {
-		cl->rate = 99999;	// lans should not rate limit
+	if ( cl->netchan.isLANAddress && com_dedicated->integer != 2 && sv_lanForceRate->integer ) {
+		cl->rate = maxRate;	// lans should not rate limit
 	} else {
 		val = Info_ValueForKey (cl->userinfo, "rate");
 		if (strlen(val)) {
