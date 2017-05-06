@@ -70,14 +70,18 @@ void SV_GetChallenge(netadr_t from)
 	qboolean gameMismatch;
 
 	// ignore if we are in single player
+#ifndef DEDICATED
 	if ( Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableValue("ui_singlePlayerActive")) {
 		return;
 	}
+#endif
 
 	// Prevent using getchallenge as an amplifier
 	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {
-		Com_DPrintf( "SV_GetChallenge: rate limit from %s exceeded, dropping request\n",
-			NET_AdrToString( from ) );
+		if ( com_developer->integer ) {
+			Com_Printf( "SV_GetChallenge: rate limit from %s exceeded, dropping request\n",
+				NET_AdrToString( from ) );
+		}
 		return;
 	}
 
@@ -185,7 +189,9 @@ void SV_GetChallenge(netadr_t from)
 			// otherwise send their ip to the authorize server
 			const char *game;
 
-			Com_DPrintf( "sending getIpAuthorize for %s\n", NET_AdrToString( from ));
+			if ( com_developer->integer ) {
+				Com_Printf( "sending getIpAuthorize for %s\n", NET_AdrToString( from ));
+			}
 		
 			game = Cvar_VariableString( "fs_game" );
 			if (game[0] == 0) {
@@ -386,7 +392,9 @@ void SV_DirectConnect( netadr_t from ) {
 			|| from.port == cl->netchan.remoteAddress.port ) ) {
 			if (( svs.time - cl->lastConnectTime) 
 				< (sv_reconnectlimit->integer * 1000)) {
-				Com_DPrintf ("%s:reconnect rejected : too soon\n", NET_AdrToString (from));
+					if ( com_developer->integer ) {
+						Com_Printf("%s:reconnect rejected : too soon\n", NET_AdrToString ( from ) );
+					}
 				return;
 			}
 			break;
