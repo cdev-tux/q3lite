@@ -73,6 +73,8 @@ cvar_t *r_allowResize; // make window resizable
 cvar_t *r_centerWindow;
 cvar_t *r_sdlDriver;
 
+int qglMajorVersion, qglMinorVersion;
+
 void (APIENTRYP qglActiveTextureARB) (GLenum texture);
 void (APIENTRYP qglClientActiveTextureARB) (GLenum texture);
 void (APIENTRYP qglMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat t);
@@ -83,6 +85,7 @@ void (APIENTRYP qglUnlockArraysEXT) (void);
 #define GLE(ret, name, ...) name##proc * qgl##name;
 QGL_1_0_PROCS;
 QGL_1_1_PROCS;
+QGL_3_0_PROCS;
 #undef GLE
 
 /*
@@ -246,6 +249,7 @@ Get addresses for OpenGL functions.
 */
 static qboolean GLimp_GetProcAddresses( void ) {
 	qboolean success = qtrue;
+	const char *version;
 
 #ifdef __SDL_NOGETPROCADDR__
 #define GLE( ret, name, ... ) qgl##name = gl#name;
@@ -257,8 +261,32 @@ static qboolean GLimp_GetProcAddresses( void ) {
 	}
 #endif
 
-	QGL_1_0_PROCS;
-	QGL_1_1_PROCS;
+	// OpenGL 1.0
+	GLE(const GLubyte *, GetString, GLenum name)
+
+	if ( !qglGetString ) {
+		Com_Error( ERR_FATAL, "glGetString is NULL" );
+	}
+
+	version = (const char *)qglGetString( GL_VERSION );
+
+	if ( !version ) {
+		Com_Error( ERR_FATAL, "GL_VERSION is NULL\n" );
+	}
+
+	sscanf( version, "%d.%d", &qglMajorVersion, &qglMinorVersion );
+
+	// require OpenGL 1.1
+	if ( QGL_VERSION_ATLEAST( 1, 1 ) ) {
+		QGL_1_0_PROCS;
+		QGL_1_1_PROCS;
+	} else {
+		Com_Error( ERR_FATAL, "Unsupported OpenGL Version: %s\n", version );
+	}
+
+	if ( QGL_VERSION_ATLEAST( 3, 0 ) ) {
+		QGL_3_0_PROCS;
+	}
 
 #undef GLE
 
@@ -275,8 +303,12 @@ Clear addresses for OpenGL functions.
 static void GLimp_ClearProcAddresses( void ) {
 #define GLE( ret, name, ... ) qgl##name = NULL;
 
+	qglMajorVersion = 0;
+	qglMinorVersion = 0;
+
 	QGL_1_0_PROCS;
 	QGL_1_1_PROCS;
+	QGL_3_0_PROCS;
 
 #undef GLE
 }
@@ -991,10 +1023,41 @@ success:
 	if (*glConfig.renderer_string && glConfig.renderer_string[strlen(glConfig.renderer_string) - 1] == '\n')
 		glConfig.renderer_string[strlen(glConfig.renderer_string) - 1] = 0;
 	Q_strncpyz( glConfig.version_string, (char *) qglGetString (GL_VERSION), sizeof( glConfig.version_string ) );
-	if (qglGetString(GL_EXTENSIONS))
-		Q_strncpyz( glConfig.extensions_string, (char *) qglGetString (GL_EXTENSIONS), sizeof( glConfig.extensions_string ) );
+
+#ifndef HAVE_GLES
+	// manually create extension list if using OpenGL 3
+	if ( qglGetStringi )
+	{
+		int i, numExtensions, extensionLength, listLength;
+		const char *extension;
+
+		qglGetIntegerv( GL_NUM_EXTENSIONS, &numExtensions );
+		listLength = 0;
+
+		for ( i = 0; i < numExtensions; i++ )
+		{
+			extension = (char *) qglGetStringi( GL_EXTENSIONS, i );
+			extensionLength = strlen( extension );
+
+			if ( ( listLength + extensionLength + 1 ) >= sizeof( glConfig.extensions_string ) )
+				break;
+
+			if ( i > 0 ) {
+				Q_strcat( glConfig.extensions_string, sizeof( glConfig.extensions_string ), " " );
+				listLength++;
+			}
+
+			Q_strcat( glConfig.extensions_string, sizeof( glConfig.extensions_string ), extension );
+			listLength += extensionLength;
+		}
+	}
 	else
-		Q_strncpyz( glConfig.extensions_string, "Not available (core context, fixme)", sizeof( glConfig.extensions_string ) );
+	{
+		Q_strncpyz( glConfig.extensions_string, (char *) qglGetString (GL_EXTENSIONS), sizeof( glConfig.extensions_string ) );
+	}
+#else
+	Q_strncpyz( glConfig.extensions_string, (char *) qglGetString (GL_EXTENSIONS), sizeof( glConfig.extensions_string ) );
+#endif
 
 	// initialize extensions
 	GLimp_InitExtensions( );
