@@ -1,0 +1,465 @@
+#
+# Q3lite Makefile
+#
+# This file is part of the Q3lite source code. https://github.com/cdev-tux/q3lite
+# See COPYING.txt for copyright and license details.
+#
+#############################################################################
+# If PLATFORM_TYPE is set then it's a supported platform.
+#############################################################################
+
+ifneq ($(PLATFORM_TYPE),)
+  ifeq ($(shell uname -m),armv7l)
+    override ARCH=armv7l
+  else
+    override ARCH=arm
+  endif
+
+  echo_cmd=@echo
+  Q=@
+
+  ifndef MOUNT_DIR
+  MOUNT_DIR=code
+  endif
+
+  SDLHDIR=$(MOUNT_DIR)/SDL2
+
+  ifndef Q3LITE_LIB_PATH
+  Q3LITE_LIB_PATH=/usr/local/lib/q3lite
+  endif
+
+  override COMPILE_ARCH=$(ARCH)
+  override RENDERER_LIBS=$(SDL_LIBS)
+  override GIT_REV=
+
+  ifndef BASEGAME
+  BASEGAME=baseq3
+  endif
+
+  ifndef BR  
+  BR=build/release-linux-$(ARCH)
+  endif
+
+  ifndef CLIENTBIN  
+  CLIENTBIN=quake3
+  endif
+
+  ifndef FULLBINEXT  
+  FULLBINEXT=.$(ARCH)
+  endif
+
+  ifndef Q3LITE_USER  
+  Q3LITE_USER=pi
+  endif
+
+  ifndef CMDIR
+  CMDIR=$(MOUNT_DIR)/qcommon
+  endif
+
+  ifneq ($(MKDIR),mkdir -p)
+  override MKDIR=mkdir -p
+  endif
+
+  ifndef MISSIONPACK
+  MISSIONPACK=missionpack
+  endif
+
+  ifndef SHLIBNAME
+  SHLIBNAME=$(ARCH).$(SHLIBEXT)
+  endif
+
+  ifndef SHLIBEXT
+  SHLIBEXT=so
+  endif
+
+  INSTALL=/usr/bin/install
+
+  ifndef SDL_CFLAGS
+    ifeq ($(USE_LOCAL_HEADERS),0)
+      SDL_CFLAGS += -I/usr/local/include/SDL2
+    else  
+      SDL_CFLAGS += -I$(SDLHDIR)/include
+    endif
+    SDL_CFLAGS += -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -D_REENTRANT -Wno-strict-prototypes
+  endif
+
+  ifeq ($(Q3LITE_INSTALL_SDL),1)
+    override SDL_LIBS=-L/usr/local/lib/q3lite -L/usr/local/lib -L$(Q3LITE_SRC_SDL_PATH) -Wl,-rpath,/usr/local/lib/q3lite:/usr/local/lib -lSDL2
+  else
+    override SDL_LIBS=-L/usr/local/lib/q3lite -L/usr/local/lib -Wl,-rpath,/usr/local/lib/q3lite:/usr/local/lib -lSDL2
+  endif
+
+  ifeq ($(PLATFORM_TYPE),raspberrypi) # Pi 1, Zero, Zero W
+    PI_CFLAGS=-march=armv6zk -mfpu=vfp -mtune=arm1176jzf-s
+  endif
+  ifeq ($(PLATFORM_TYPE),raspberrypi2) # Pi 2
+    PI_CFLAGS=-march=armv7-a -mfpu=vfpv4 -mtune=cortex-a7
+  endif
+  ifeq ($(PLATFORM_TYPE),raspberrypi3) # Pi 3
+    PI_CFLAGS=-march=armv8-a+crc -mfpu=vfpv4 -mtune=cortex-a53
+  endif
+  CFLAGS += -DHAVE_GLES $(PI_CFLAGS) -mfloat-abi=hard -Ofast -I/opt/vc/include
+  LDFLAGS += -L/opt/vc/lib -lEGL -lGLESv2
+
+endif #ifneq ($(PLATFORM_TYPE),)
+
+GIT_REVISION=$(shell git show -s --pretty=format:%h)
+ifneq ($(GIT_REVISION),)
+  VERSION=$(shell git tag --contains $(GIT_REVISION) | grep -v [^0-9.v])
+  ifeq ($(VERSION),)
+    VERSION=$(shell git tag | grep -v [^0-9.v] | sort -r --version-sort | head -n1)
+    ifneq ($(VERSION),)
+      VERSION:=$(VERSION)+$(GIT_REVISION)
+      override USE_GIT=1
+    else
+      VERSION=$(GIT_REVISION)
+    endif
+  endif
+endif
+
+#############################################################################
+# TARGETS
+#############################################################################
+
+q3lite_install: q3lite_makedirs
+  ifneq ($(BUILD_CLIENT),0)
+    # Install client binary file.
+    ifneq ($(wildcard $(BR)/$(CLIENTBIN)$(FULLBINEXT)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/$(CLIENTBIN)$(FULLBINEXT) $(Q3LITE_BASEPATH)/$(CLIENTBIN)$(FULLBINEXT)
+    else
+		@echo "***Source file $(BR)/$(CLIENTBIN)$(FULLBINEXT) not found, unable to install."
+    endif
+  endif
+  ifneq ($(BUILD_SERVER),0)
+    # Install server binary file.
+    ifneq ($(wildcard $(BR)/$(SERVERBIN)$(FULLBINEXT)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/$(SERVERBIN)$(FULLBINEXT) $(Q3LITE_BASEPATH)/$(SERVERBIN)$(FULLBINEXT)
+    else
+		@echo "***Source file $(BR)/$(SERVERBIN)$(FULLBINEXT) not found, unable to install."
+    endif
+  endif
+  ifneq ($(BUILD_GAME_QVM),0)
+    ifneq ($(BUILD_BASEGAME),0)
+        ifneq ($(wildcard $(BR)/$(BASEGAME)/vm/cgame.qvm),)
+		$(INSTALL) -m 0755 -o root -g root -p $(BR)/$(BASEGAME)/vm/cgame.qvm $(Q3LITE_BASEPATH)/$(BASEGAME)/vm/.
+        else
+		@echo "***Source file $(BR)/$(BASEGAME)/vm/cgame.qvm not found, unable to install."
+        endif
+        ifneq ($(wildcard $(BR)/$(BASEGAME)/vm/qagame.qvm),)
+		$(INSTALL) -m 0755 -o root -g root -p $(BR)/$(BASEGAME)/vm/qagame.qvm $(Q3LITE_BASEPATH)/$(BASEGAME)/vm/.
+        else
+		@echo "***Source file $(BR)/$(BASEGAME)/vm/qagame.qvm not found, unable to install."
+        endif
+        ifneq ($(wildcard $(BR)/$(BASEGAME)/vm/ui.qvm),)
+		$(INSTALL) -m 0755 -o root -g root -p $(BR)/$(BASEGAME)/vm/ui.qvm $(Q3LITE_BASEPATH)/$(BASEGAME)/vm/.
+        else
+		@echo "***Source file $(BR)/$(BASEGAME)/vm/ui.qvm not found, unable to install."
+        endif
+    endif
+  endif
+  ifneq ($(BUILD_MISSIONPACK),0)
+    ifneq ($(wildcard $(BR)/$(MISSIONPACK)/vm/cgame.qvm),)
+		$(INSTALL) -m 0755 -o root -g root -p $(BR)/$(MISSIONPACK)/vm/cgame.qvm $(Q3LITE_BASEPATH)/$(MISSIONPACK)/vm/.
+    else
+		@echo "***Source file $(BR)/$(MISSIONPACK)/vm/cgame.qvm not found, unable to install."
+    endif
+    ifneq ($(wildcard $(BR)/$(MISSIONPACK)/vm/qagame.qvm),)
+		$(INSTALL) -m 0755 -o root -g root -p $(BR)/$(MISSIONPACK)/vm/qagame.qvm $(Q3LITE_BASEPATH)/$(MISSIONPACK)/vm/.
+    else
+		@echo "***Source file $(BR)/$(MISSIONPACK)/vm/qagame.qvm not found, unable to install."
+    endif
+    ifneq ($(wildcard $(BR)/$(MISSIONPACK)/vm/ui.qvm),)
+		$(INSTALL) -m 0755 -o root -g root -p $(BR)/$(MISSIONPACK)/vm/ui.qvm $(Q3LITE_BASEPATH)/$(MISSIONPACK)/vm/.
+    else
+		@echo "***Source file $(BR)/$(MISSIONPACK)/vm/ui.qvm not found, unable to install."
+    endif
+  endif
+  ifneq ($(BUILD_GAME_SO),0)
+    ifneq ($(BUILD_BASEGAME),0)
+      ifneq ($(wildcard $(BR)/$(BASEGAME)/cgame$(SHLIBNAME)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/$(BASEGAME)/cgame$(SHLIBNAME) $(Q3LITE_BASEPATH)/$(BASEGAME)/.
+      else
+		@echo "***Source file $(BR)/$(BASEGAME)/cgame$(SHLIBNAME) not found, unable to install."
+      endif
+      ifneq ($(wildcard $(BR)/$(BASEGAME)/qagame$(SHLIBNAME)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/$(BASEGAME)/qagame$(SHLIBNAME) $(Q3LITE_BASEPATH)/$(BASEGAME)/.
+      else
+		@echo "***Source file $(BR)/$(BASEGAME)/qagame$(SHLIBNAME) not found, unable to install."
+      endif
+      ifneq ($(wildcard $(BR)/$(BASEGAME)/ui$(SHLIBNAME)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/$(BASEGAME)/ui$(SHLIBNAME) $(Q3LITE_BASEPATH)/$(BASEGAME)/.
+      else
+		@echo "***Source file $(BR)/$(BASEGAME)/ui$(SHLIBNAME) not found, unable to install."
+      endif
+    endif
+    ifneq ($(BUILD_MISSIONPACK),0)
+      ifneq ($(wildcard $(BR)/$(MISSIONPACK)/cgame$(SHLIBNAME)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/$(MISSIONPACK)/cgame$(SHLIBNAME) $(Q3LITE_BASEPATH)/$(MISSIONPACK)/.
+      else
+		@echo "***Source file $(BR)/$(MISSIONPACK)/cgame$(SHLIBNAME) not found, unable to install."
+      endif
+      ifneq ($(wildcard $(BR)/$(MISSIONPACK)/qagame$(SHLIBNAME)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/$(MISSIONPACK)/qagame$(SHLIBNAME) $(Q3LITE_BASEPATH)/$(MISSIONPACK)/.
+      else
+		@echo "***Source file $(BR)/$(MISSIONPACK)/qagame$(SHLIBNAME) not found, unable to install."
+      endif
+      ifneq ($(wildcard $(BR)/$(MISSIONPACK)/ui$(SHLIBNAME)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/$(MISSIONPACK)/ui$(SHLIBNAME) $(Q3LITE_BASEPATH)/$(MISSIONPACK)/.
+      else
+		@echo "***Source file $(BR)/$(MISSIONPACK)/ui$(SHLIBNAME) not found, unable to install."
+      endif
+    endif
+  endif
+  # Install updated pak files if available and the user agreed to the EULA.
+  ifeq ($(Q3LITE_UPDATE),yes)
+    ifneq ($(wildcard $(Q3LITE_TMP_DIR)/$(BASEGAME)/*.pk3),)
+		$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_TMP_DIR)/$(BASEGAME)/*.pk3 $(Q3LITE_BASEPATH)/$(BASEGAME)
+    else
+		@echo "***Source files $(Q3LITE_TMP_DIR)/$(BASEGAME)/*.pk3 not found, unable to install."
+    endif
+  endif
+  # Install updated missionpack pak files if available and the user agreed to the EULA.
+  ifeq ($(Q3LITE_UPDATE),yes)
+    ifneq ($(BUILD_MISSIONPACK),0)
+      ifneq ($(wildcard $(Q3LITE_TMP_DIR)/$(MISSIONPACK)/*.pk3),)
+		$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_TMP_DIR)/$(MISSIONPACK)/*.pk3 $(Q3LITE_BASEPATH)/$(MISSIONPACK)
+      else
+		@echo "***Source files $(Q3LITE_TMP_DIR)/$(MISSIONPACK)/*.pk3 not found, unable to install."
+      endif
+    endif
+  endif	
+  # Install q3lite.png icon.
+  ifneq ($(wildcard $(Q3LITE_SRC_HOME)/q3lite.png),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_HOME)/q3lite.png $(Q3LITE_IMG_DIR)/q3lite.png
+  else
+	@echo "***Source file $(Q3LITE_SRC_HOME)/q3lite.png not found, unable to install."
+  endif
+  # Install q3lite-server.png icon.
+  ifneq ($(wildcard $(Q3LITE_SRC_HOME)/q3lite_server.png),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_HOME)/q3lite_server.png $(Q3LITE_IMG_DIR)/q3lite_server.png
+  else
+	@echo "***Source file $(Q3LITE_SRC_HOME)/q3lite_server.png not found, unable to install."
+  endif
+  # Install q3lite_timedemo.png icon.
+  ifneq ($(wildcard $(Q3LITE_SRC_HOME)/q3lite_timedemo.png),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_HOME)/q3lite_timedemo.png $(Q3LITE_IMG_DIR)/q3lite_timedemo.png
+  else
+	@echo "***Source file $(Q3LITE_SRC_HOME)/q3lite_timedemo.png not found, unable to install."
+  endif
+  # Install q3lite_rcon.png icon.
+  ifneq ($(wildcard $(Q3LITE_SRC_HOME)/q3lite_rcon.png),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_HOME)/q3lite_rcon.png $(Q3LITE_IMG_DIR)/q3lite_rcon.png
+  else
+	@echo "***Source file $(Q3LITE_SRC_HOME)/q3lite_timedemo.png not found, unable to install."
+  endif
+  # Install q3lite.desktop app menu file.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/q3lite.desktop),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/q3lite.desktop $(Q3LITE_LOCAL_APP_DIR)/q3lite.desktop
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3lite.desktop not found, unable to install."
+  endif
+  # Install q3lite_ded.desktop app menu file.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/q3lite_ded.desktop),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/q3lite_ded.desktop $(Q3LITE_LOCAL_APP_DIR)/q3lite_ded.desktop
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3lite_ded.desktop not found, unable to install."
+  endif
+  # Install q3lite_timedemo.desktop app menu file.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/q3lite_timedemo.desktop),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/q3lite_timedemo.desktop $(Q3LITE_LOCAL_APP_DIR)/q3lite_timedemo.desktop
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3lite_timedemo.desktop not found, unable to install."
+  endif
+  # Install q3lite_rcon.desktop app menu file.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/q3lite_rcon.desktop),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/q3lite_rcon.desktop $(Q3LITE_LOCAL_APP_DIR)/q3lite_rcon.desktop
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3lite_timedemo.desktop not found, unable to install."
+  endif
+  # Install q3lite.directory submenu file.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/q3lite.directory),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/q3lite.directory $(Q3LITE_DIR_DIR)/q3lite.directory
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3lite.directory not found, unable to install."
+  endif
+  # Install lxde-pi-applications.menu file.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/lxde-pi-applications.menu),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/lxde-pi-applications.menu $(Q3LITE_MENU_DIR)/lxde-pi-applications.menu
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3lite.directory not found, unable to install."
+  endif
+  # Install q3lite_ded.service systemd service file.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/q3lite_ded.service),)
+	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/q3lite_ded.service $(Q3LITE_SYSTEMD_DIR)/q3lite_ded.service
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3lite_ded.service not found, unable to install."
+  endif
+  # Install q3admin background server script.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/q3admin),)
+	$(INSTALL) -m 0755 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/q3admin $(Q3LITE_BIN_DIR)/q3admin
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3admin not found, unable to install."
+  endif
+  # Install q3lite launch script.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/q3lite),)
+	$(INSTALL) -m 0755 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/q3lite $(Q3LITE_BIN_DIR)/q3lite
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3lite not found, unable to install."
+  endif
+  # Install q3lite-ded dedicated server launch script.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/q3lite-ded),)
+	$(INSTALL) -m 0755 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/q3lite-ded $(Q3LITE_BIN_DIR)/q3lite-ded
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3lite-ded not found, unable to install."
+  endif
+  # Install rcon command script.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/rcon),)
+	$(INSTALL) -m 0755 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/rcon $(Q3LITE_BIN_DIR)/rcon
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/rcon not found, unable to install."
+  endif
+  # Install rcmd.sh command script.
+  ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/rcmd.sh),)
+	$(INSTALL) -m 0755 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/rcmd.sh $(Q3LITE_BIN_DIR)/rcmd.sh
+  else
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/rcmd.sh not found, unable to install."
+  endif
+  # Install autoexec.cfg file if it doesn't exist in ~/.q3a/baseq3 (don't overwrite existing file).
+  ifneq ($(wildcard $(Q3LITE_SRC_HOME)/autoexec.cfg),)
+    ifneq ($(wildcard $(Q3LITE_HOMEPATH)/$(BASEGAME)/autoexec.cfg),)
+	@echo "$(Q3LITE_HOMEPATH)/$(BASEGAME)/autoexec.cfg file already exists, skipping file overwrite."
+    else
+	$(INSTALL) -m 0644 -o $(Q3LITE_USER) -g $(Q3LITE_USER) -p $(Q3LITE_SRC_HOME)/autoexec.cfg $(Q3LITE_HOMEPATH)/$(BASEGAME)/autoexec.cfg
+    endif
+  else
+	@echo "***Source file $(Q3LITE_SRC_HOME)/autoexec.cfg not found, unable to install."
+  endif
+  # Install server.cfg file if it doesn't exist in ~/.q3a/baseq3 (don't overwrite existing file).
+  ifneq ($(wildcard $(Q3LITE_SRC_HOME)/server.cfg),)
+    ifneq ($(wildcard $(Q3LITE_HOMEPATH)/$(BASEGAME)/server.cfg),)
+	@echo "$(Q3LITE_HOMEPATH)/$(BASEGAME)/server.cfg file already exists, skipping file overwrite."
+    else
+	$(INSTALL) -m 0644 -o $(Q3LITE_USER) -g $(Q3LITE_USER) -p $(Q3LITE_SRC_HOME)/server.cfg $(Q3LITE_HOMEPATH)/$(BASEGAME)/server.cfg
+    endif
+  else
+	@echo "***Source file $(Q3LITE_SRC_HOME)/server.cfg not found, unable to install."
+  endif
+  # Install compatible SDL2 dynamic libs if Q3LITE_INSTALL_SDL=1 and files are available in the source directory.
+  # If Q3LITE_INSTALL_SDL!=1 then remove the $(Q3LITE_LIB_PATH) folder and files.
+  ifeq ($(Q3LITE_INSTALL_SDL),1) 
+    ifneq ($(wildcard $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.4.0),)
+	$(INSTALL) -m 0755 -o root -g root -p $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.4.0 $(Q3LITE_LIB_PATH)/libSDL2-2.0.so.0.4.0
+    else
+	@echo "***Source file $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.4.0 not found, unable to install."
+    endif
+    ifneq ($(wildcard $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0),)
+	cp -Ppf $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0 $(Q3LITE_LIB_PATH)/libSDL2-2.0.so.0
+    else
+	@echo "***Source file $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0 not found, unable to install."
+    endif
+    ifneq ($(wildcard $(Q3LITE_SRC_SDL_PATH)/libSDL2.so),)
+	cp -Ppf $(Q3LITE_SRC_SDL_PATH)/libSDL2.so $(Q3LITE_LIB_PATH)/libSDL2.so
+    else
+	@echo "***Source file $(Q3LITE_SRC_SDL_PATH)/libSDL2.so not found, unable to install."
+    endif
+  else
+	rm -f -r $(Q3LITE_LIB_PATH)
+  endif
+	@echo ""
+
+q3lite_uninstall: q3lite_rmdirs
+    # Uninstall q3lite.png icon.
+	rm -f $(Q3LITE_IMG_DIR)/q3lite.png
+    # Uninstall q3lite-server.png icon.
+	rm -f $(Q3LITE_IMG_DIR)/q3lite_server.png
+    # Uninstall q3lite_timedemo.png icon.
+	rm -f $(Q3LITE_IMG_DIR)/q3lite_timedemo.png
+    # Uninstall q3lite-rcon.png icon.
+	rm -f $(Q3LITE_IMG_DIR)/q3lite_rcon.png
+    # Uninstall q3lite.desktop app menu file.
+	rm -f $(Q3LITE_LOCAL_APP_DIR)/q3lite.desktop
+    # Uninstall q3lite_ded.desktop app menu file.
+	rm -f $(Q3LITE_LOCAL_APP_DIR)/q3lite_ded.desktop
+    # Uninstall q3lite_timedemo.desktop app menu file.
+	rm -f $(Q3LITE_LOCAL_APP_DIR)/q3lite_timedemo.desktop
+    # Uninstall q3lite_rcon.desktop app menu file.
+	rm -f $(Q3LITE_LOCAL_APP_DIR)/q3lite_rcon.desktop
+    # Uninstall q3lite.directory submenu file.
+	rm -f $(Q3LITE_DIR_DIR)/q3lite.directory
+    # Uninstall lxde-pi-applications.menu file.
+	rm -f $(Q3LITE_MENU_DIR)/lxde-pi-applications.menu
+    # Uninstall q3lite_ded.service systemd service file.
+	rm -f $(Q3LITE_SYSTEMD_DIR)/q3lite_ded.service
+    # Uninstall q3lite script.
+	rm -f $(Q3LITE_BIN_DIR)/q3lite
+    # Uninstall q3lite-ded server script.
+	rm -f $(Q3LITE_BIN_DIR)/q3lite-ded
+    # Uninstall rcon command script.
+	rm -f $(Q3LITE_BIN_DIR)/rcon
+    # Uninstall rcmd.sh command script.
+	rm -f $(Q3LITE_BIN_DIR)/rcmd.sh
+    # Uninstall q3admin background server script.
+	rm -f $(Q3LITE_BIN_DIR)/q3admin
+	@echo "Removing the 'quake3' user"
+	$(shell userdel -fr quake3 2> /dev/null)
+	@echo ""
+
+q3lite_makedirs:
+  ifneq ($(BUILD_BASEGAME),0)
+	-$(MKDIR) -m 0755 $(Q3LITE_BASEPATH)/$(BASEGAME)
+  endif
+  ifneq ($(BUILD_MISSIONPACK),0)
+	-$(MKDIR) -m 0755 $(Q3LITE_BASEPATH)/$(MISSIONPACK)
+  endif
+  ifneq ($(BUILD_GAME_QVM),0)
+    ifneq ($(BUILD_BASEGAME),0)
+	-$(MKDIR) -m 0755 $(Q3LITE_BASEPATH)/$(BASEGAME)/vm
+    endif
+    ifneq ($(BUILD_MISSIONPACK),0)
+	-$(MKDIR) -m 0755 $(Q3LITE_BASEPATH)/$(MISSIONPACK)/vm
+    endif
+  endif
+  ifneq ($(Q3LITE_HOMEPATH),)
+	-$(MKDIR) -m 0775 $(Q3LITE_HOMEPATH)/$(BASEGAME)
+    ifneq ($(Q3LITE_HOMEPATH)/$(BASEGAME),)
+	chown $(Q3LITE_USER):$(Q3LITE_USER) $(Q3LITE_HOMEPATH)/$(BASEGAME)
+    endif
+    ifneq ($(BUILD_MISSIONPACK),0)
+	-$(MKDIR) -m 0775 $(Q3LITE_HOMEPATH)/$(MISSIONPACK)
+        ifneq ($(Q3LITE_HOMEPATH)/$(MISSIONPACK),)
+		chown $(Q3LITE_USER):$(Q3LITE_USER) $(Q3LITE_HOMEPATH)/$(MISSIONPACK)
+        endif
+    endif
+	chown $(Q3LITE_USER):$(Q3LITE_USER) $(Q3LITE_HOMEPATH)
+  endif
+  ifneq ($(Q3LITE_LOCAL_APP_DIR),)
+	-$(MKDIR) -m 0775 $(Q3LITE_LOCAL_APP_DIR)
+  endif
+  ifneq ($(Q3LITE_DIR_DIR),)
+	-$(MKDIR) -m 0775 $(Q3LITE_DIR_DIR)
+  endif
+  ifneq ($(Q3LITE_MENU_DIR),)
+	-$(MKDIR) -m 0775 $(Q3LITE_MENU_DIR)
+  endif
+  ifneq ($(Q3LITE_LIB_PATH),)
+    ifeq ($(Q3LITE_INSTALL_SDL),1)
+	-$(MKDIR) -m 0775 $(Q3LITE_LIB_PATH)
+	chown -R root:staff $(Q3LITE_LIB_PATH)
+    endif
+  endif
+
+q3lite_rmdirs:
+	rm -f -r $(Q3LITE_BASEPATH)
+	rm -f -r $(Q3LITE_TMP_DIR)
+	rm -f -r $(Q3LITE_LIB_PATH)
+
+#############################################################################
+# DEPENDENCIES
+#############################################################################
+
+.PHONY: q3lite_install q3lite_makedirs q3lite_rmdirs
+
+# If the target name contains "clean", don't do a parallel build
+ifneq ($(findstring clean, $(MAKECMDGOALS)),)
+.NOTPARALLEL:
+endif

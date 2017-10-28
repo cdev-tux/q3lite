@@ -47,6 +47,7 @@ endif
 # causing problems with keeping up to date with the repository.
 #
 #############################################################################
+-include Makefile.q3lite
 -include Makefile.local
 
 ifeq ($(COMPILE_PLATFORM),cygwin)
@@ -246,8 +247,9 @@ BR=$(BUILD_DIR)/release-$(PLATFORM)-$(ARCH)
 CDIR=$(MOUNT_DIR)/client
 SDIR=$(MOUNT_DIR)/server
 RCOMMONDIR=$(MOUNT_DIR)/renderercommon
-RGL1DIR=$(MOUNT_DIR)/renderergl1
+RGL1DIR=$(MOUNT_DIR)/rendererq3lgles1
 RGL2DIR=$(MOUNT_DIR)/renderergl2
+RQ3LGLES1DIR=$(MOUNT_DIR)/rendererq3lgles1
 CMDIR=$(MOUNT_DIR)/qcommon
 SDLDIR=$(MOUNT_DIR)/sdl
 ASMDIR=$(MOUNT_DIR)/asm
@@ -1385,7 +1387,7 @@ makedirs:
 	@if [ ! -d $(B)/client ];then $(MKDIR) $(B)/client;fi
 	@if [ ! -d $(B)/client/opus ];then $(MKDIR) $(B)/client/opus;fi
 	@if [ ! -d $(B)/client/vorbis ];then $(MKDIR) $(B)/client/vorbis;fi
-	@if [ ! -d $(B)/renderergl1 ];then $(MKDIR) $(B)/renderergl1;fi
+	@if [ ! -d $(B)/$(RQ3LGLES1DIR) ];then $(MKDIR) $(B)/$(RQ3LGLES1DIR);fi
 	@if [ ! -d $(B)/renderergl2 ];then $(MKDIR) $(B)/renderergl2;fi
 	@if [ ! -d $(B)/renderergl2/glsl ];then $(MKDIR) $(B)/renderergl2/glsl;fi
 	@if [ ! -d $(B)/ded ];then $(MKDIR) $(B)/ded;fi
@@ -1774,8 +1776,8 @@ Q3R2OBJ = \
   $(B)/renderergl2/tr_vbo.o \
   $(B)/renderergl2/tr_world.o \
   \
-  $(B)/renderergl1/sdl_gamma.o \
-  $(B)/renderergl1/sdl_glimp.o
+  $(B)/$(RQ3LGLES1DIR)/sdl_gamma.o \
+  $(B)/$(RQ3LGLES1DIR)/sdl_glimp.o
 
 Q3R2STRINGOBJ = \
   $(B)/renderergl2/glsl/bokeh_fp.o \
@@ -1808,101 +1810,101 @@ Q3R2STRINGOBJ = \
   $(B)/renderergl2/glsl/tonemap_vp.o
 
 Q3ROBJ = \
-  $(B)/renderergl1/tr_animation.o \
-  $(B)/renderergl1/tr_backend.o \
-  $(B)/renderergl1/tr_bsp.o \
-  $(B)/renderergl1/tr_cmds.o \
-  $(B)/renderergl1/tr_curve.o \
-  $(B)/renderergl1/tr_flares.o \
-  $(B)/renderergl1/tr_font.o \
-  $(B)/renderergl1/tr_image.o \
-  $(B)/renderergl1/tr_image_bmp.o \
-  $(B)/renderergl1/tr_image_jpg.o \
-  $(B)/renderergl1/tr_image_pcx.o \
-  $(B)/renderergl1/tr_image_png.o \
-  $(B)/renderergl1/tr_image_tga.o \
-  $(B)/renderergl1/tr_init.o \
-  $(B)/renderergl1/tr_light.o \
-  $(B)/renderergl1/tr_main.o \
-  $(B)/renderergl1/tr_marks.o \
-  $(B)/renderergl1/tr_mesh.o \
-  $(B)/renderergl1/tr_model.o \
-  $(B)/renderergl1/tr_model_iqm.o \
-  $(B)/renderergl1/tr_noise.o \
-  $(B)/renderergl1/tr_scene.o \
-  $(B)/renderergl1/tr_shade.o \
-  $(B)/renderergl1/tr_shade_calc.o \
-  $(B)/renderergl1/tr_shader.o \
-  $(B)/renderergl1/tr_shadows.o \
-  $(B)/renderergl1/tr_sky.o \
-  $(B)/renderergl1/tr_surface.o \
-  $(B)/renderergl1/tr_world.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_animation.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_backend.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_bsp.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_cmds.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_curve.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_flares.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_font.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_image.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_image_bmp.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_image_jpg.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_image_pcx.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_image_png.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_image_tga.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_init.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_light.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_main.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_marks.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_mesh.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_model.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_model_iqm.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_noise.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_scene.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_shade.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_shade_calc.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_shader.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_shadows.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_sky.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_surface.o \
+  $(B)/$(RQ3LGLES1DIR)/tr_world.o \
   \
-  $(B)/renderergl1/sdl_gamma.o \
-  $(B)/renderergl1/sdl_glimp.o
+  $(B)/$(RQ3LGLES1DIR)/sdl_gamma.o \
+  $(B)/$(RQ3LGLES1DIR)/sdl_glimp.o
 
 ifneq ($(USE_RENDERER_DLOPEN), 0)
   Q3ROBJ += \
-    $(B)/renderergl1/q_shared.o \
-    $(B)/renderergl1/puff.o \
-    $(B)/renderergl1/q_math.o \
-    $(B)/renderergl1/tr_subs.o
+    $(B)/$(RQ3LGLES1DIR)/q_shared.o \
+    $(B)/$(RQ3LGLES1DIR)/puff.o \
+    $(B)/$(RQ3LGLES1DIR)/q_math.o \
+    $(B)/$(RQ3LGLES1DIR)/tr_subs.o
 
   Q3R2OBJ += \
-    $(B)/renderergl1/q_shared.o \
-    $(B)/renderergl1/puff.o \
-    $(B)/renderergl1/q_math.o \
-    $(B)/renderergl1/tr_subs.o
+    $(B)/$(RQ3LGLES1DIR)/q_shared.o \
+    $(B)/$(RQ3LGLES1DIR)/puff.o \
+    $(B)/$(RQ3LGLES1DIR)/q_math.o \
+    $(B)/$(RQ3LGLES1DIR)/tr_subs.o
 endif
 
 ifneq ($(USE_INTERNAL_JPEG),0)
   JPGOBJ = \
-    $(B)/renderergl1/jaricom.o \
-    $(B)/renderergl1/jcapimin.o \
-    $(B)/renderergl1/jcapistd.o \
-    $(B)/renderergl1/jcarith.o \
-    $(B)/renderergl1/jccoefct.o  \
-    $(B)/renderergl1/jccolor.o \
-    $(B)/renderergl1/jcdctmgr.o \
-    $(B)/renderergl1/jchuff.o   \
-    $(B)/renderergl1/jcinit.o \
-    $(B)/renderergl1/jcmainct.o \
-    $(B)/renderergl1/jcmarker.o \
-    $(B)/renderergl1/jcmaster.o \
-    $(B)/renderergl1/jcomapi.o \
-    $(B)/renderergl1/jcparam.o \
-    $(B)/renderergl1/jcprepct.o \
-    $(B)/renderergl1/jcsample.o \
-    $(B)/renderergl1/jctrans.o \
-    $(B)/renderergl1/jdapimin.o \
-    $(B)/renderergl1/jdapistd.o \
-    $(B)/renderergl1/jdarith.o \
-    $(B)/renderergl1/jdatadst.o \
-    $(B)/renderergl1/jdatasrc.o \
-    $(B)/renderergl1/jdcoefct.o \
-    $(B)/renderergl1/jdcolor.o \
-    $(B)/renderergl1/jddctmgr.o \
-    $(B)/renderergl1/jdhuff.o \
-    $(B)/renderergl1/jdinput.o \
-    $(B)/renderergl1/jdmainct.o \
-    $(B)/renderergl1/jdmarker.o \
-    $(B)/renderergl1/jdmaster.o \
-    $(B)/renderergl1/jdmerge.o \
-    $(B)/renderergl1/jdpostct.o \
-    $(B)/renderergl1/jdsample.o \
-    $(B)/renderergl1/jdtrans.o \
-    $(B)/renderergl1/jerror.o \
-    $(B)/renderergl1/jfdctflt.o \
-    $(B)/renderergl1/jfdctfst.o \
-    $(B)/renderergl1/jfdctint.o \
-    $(B)/renderergl1/jidctflt.o \
-    $(B)/renderergl1/jidctfst.o \
-    $(B)/renderergl1/jidctint.o \
-    $(B)/renderergl1/jmemmgr.o \
-    $(B)/renderergl1/jmemnobs.o \
-    $(B)/renderergl1/jquant1.o \
-    $(B)/renderergl1/jquant2.o \
-    $(B)/renderergl1/jutils.o
+    $(B)/$(RQ3LGLES1DIR)/jaricom.o \
+    $(B)/$(RQ3LGLES1DIR)/jcapimin.o \
+    $(B)/$(RQ3LGLES1DIR)/jcapistd.o \
+    $(B)/$(RQ3LGLES1DIR)/jcarith.o \
+    $(B)/$(RQ3LGLES1DIR)/jccoefct.o  \
+    $(B)/$(RQ3LGLES1DIR)/jccolor.o \
+    $(B)/$(RQ3LGLES1DIR)/jcdctmgr.o \
+    $(B)/$(RQ3LGLES1DIR)/jchuff.o   \
+    $(B)/$(RQ3LGLES1DIR)/jcinit.o \
+    $(B)/$(RQ3LGLES1DIR)/jcmainct.o \
+    $(B)/$(RQ3LGLES1DIR)/jcmarker.o \
+    $(B)/$(RQ3LGLES1DIR)/jcmaster.o \
+    $(B)/$(RQ3LGLES1DIR)/jcomapi.o \
+    $(B)/$(RQ3LGLES1DIR)/jcparam.o \
+    $(B)/$(RQ3LGLES1DIR)/jcprepct.o \
+    $(B)/$(RQ3LGLES1DIR)/jcsample.o \
+    $(B)/$(RQ3LGLES1DIR)/jctrans.o \
+    $(B)/$(RQ3LGLES1DIR)/jdapimin.o \
+    $(B)/$(RQ3LGLES1DIR)/jdapistd.o \
+    $(B)/$(RQ3LGLES1DIR)/jdarith.o \
+    $(B)/$(RQ3LGLES1DIR)/jdatadst.o \
+    $(B)/$(RQ3LGLES1DIR)/jdatasrc.o \
+    $(B)/$(RQ3LGLES1DIR)/jdcoefct.o \
+    $(B)/$(RQ3LGLES1DIR)/jdcolor.o \
+    $(B)/$(RQ3LGLES1DIR)/jddctmgr.o \
+    $(B)/$(RQ3LGLES1DIR)/jdhuff.o \
+    $(B)/$(RQ3LGLES1DIR)/jdinput.o \
+    $(B)/$(RQ3LGLES1DIR)/jdmainct.o \
+    $(B)/$(RQ3LGLES1DIR)/jdmarker.o \
+    $(B)/$(RQ3LGLES1DIR)/jdmaster.o \
+    $(B)/$(RQ3LGLES1DIR)/jdmerge.o \
+    $(B)/$(RQ3LGLES1DIR)/jdpostct.o \
+    $(B)/$(RQ3LGLES1DIR)/jdsample.o \
+    $(B)/$(RQ3LGLES1DIR)/jdtrans.o \
+    $(B)/$(RQ3LGLES1DIR)/jerror.o \
+    $(B)/$(RQ3LGLES1DIR)/jfdctflt.o \
+    $(B)/$(RQ3LGLES1DIR)/jfdctfst.o \
+    $(B)/$(RQ3LGLES1DIR)/jfdctint.o \
+    $(B)/$(RQ3LGLES1DIR)/jidctflt.o \
+    $(B)/$(RQ3LGLES1DIR)/jidctfst.o \
+    $(B)/$(RQ3LGLES1DIR)/jidctint.o \
+    $(B)/$(RQ3LGLES1DIR)/jmemmgr.o \
+    $(B)/$(RQ3LGLES1DIR)/jmemnobs.o \
+    $(B)/$(RQ3LGLES1DIR)/jquant1.o \
+    $(B)/$(RQ3LGLES1DIR)/jquant2.o \
+    $(B)/$(RQ3LGLES1DIR)/jutils.o
 endif
 
 ifeq ($(ARCH),x86)
@@ -2669,19 +2671,19 @@ $(B)/client/win_resource.o: $(SYSDIR)/win_resource.rc $(SYSDIR)/win_manifest.xml
 	$(DO_WINDRES)
 
 
-$(B)/renderergl1/%.o: $(CMDIR)/%.c
+$(B)/$(RQ3LGLES1DIR)/%.o: $(CMDIR)/%.c
 	$(DO_REF_CC)
 
-$(B)/renderergl1/%.o: $(SDLDIR)/%.c
+$(B)/$(RQ3LGLES1DIR)/%.o: $(SDLDIR)/%.c
 	$(DO_REF_CC)
 
-$(B)/renderergl1/%.o: $(JPDIR)/%.c
+$(B)/$(RQ3LGLES1DIR)/%.o: $(JPDIR)/%.c
 	$(DO_REF_CC)
 
-$(B)/renderergl1/%.o: $(RCOMMONDIR)/%.c
+$(B)/$(RQ3LGLES1DIR)/%.o: $(RCOMMONDIR)/%.c
 	$(DO_REF_CC)
 
-$(B)/renderergl1/%.o: $(RGL1DIR)/%.c
+$(B)/$(RQ3LGLES1DIR)/%.o: $(RQ3LGLES1DIR)/%.c
 	$(DO_REF_CC)
 
 $(B)/renderergl2/glsl/%.c: $(RGL2DIR)/glsl/%.glsl
