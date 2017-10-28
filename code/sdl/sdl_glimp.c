@@ -35,6 +35,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../sys/sys_local.h"
 #include "sdl_icon.h"
 
+#ifdef HAVE_GLES
+#include "EGL/egl.h"
+void myglMultiTexCoord2f( GLenum texture, GLfloat s, GLfloat t )
+{
+	glMultiTexCoord4f(texture, s, t, 0, 1);
+}
+#endif
+
+
 typedef enum
 {
 	RSERR_OK,
@@ -218,9 +227,11 @@ GLimp_SetMode
 static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qboolean coreContext)
 {
 	const char *glstring;
+#ifndef HAVE_GLES
 	int perChannelColorBits;
-	int colorBits, depthBits, stencilBits;
 	int samples;
+#endif
+	int colorBits, depthBits, stencilBits;
 	int i = 0;
 	SDL_Surface *icon = NULL;
 	Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
@@ -344,7 +355,9 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 		depthBits = r_depthbits->value;
 
 	stencilBits = r_stencilbits->value;
+#ifndef HAVE_GLES
 	samples = r_ext_multisample->value;
+#endif
 
 	for (i = 0; i < 16; i++)
 	{
@@ -404,6 +417,7 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 				testStencilBits = 0;
 		}
 
+#ifndef HAVE_GLES
 		if (testColorBits == 24)
 			perChannelColorBits = 8;
 		else
@@ -474,6 +488,16 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 				continue;
 			}
 		}
+#else
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+
+		if( ( SDL_window = SDL_CreateWindow( CLIENT_WINDOW_TITLE, x, y,
+			glConfig.vidWidth, glConfig.vidHeight, flags ) ) == 0 )
+		{
+			ri.Printf( PRINT_DEVELOPER, "SDL_CreateWindow failed: %s\n", SDL_GetError( ) );
+			continue;
+		}
+#endif //HAVE_GLES
 
 		SDL_SetWindowIcon( SDL_window, icon );
 
@@ -671,6 +695,10 @@ static void GLimp_InitExtensions( void )
 
 
 	// GL_EXT_texture_env_add
+#ifdef HAVE_GLES
+	glConfig.textureEnvAddAvailable = qtrue;
+	ri.Printf( PRINT_ALL, "...using GL_EXT_texture_env_add\n" );
+#else
 	glConfig.textureEnvAddAvailable = qfalse;
 	if ( SDL_GL_ExtensionSupported( "GL_EXT_texture_env_add" ) )
 	{
@@ -689,11 +717,31 @@ static void GLimp_InitExtensions( void )
 	{
 		ri.Printf( PRINT_ALL, "...GL_EXT_texture_env_add not found\n" );
 	}
+#endif
 
 	// GL_ARB_multitexture
 	qglMultiTexCoord2fARB = NULL;
 	qglActiveTextureARB = NULL;
 	qglClientActiveTextureARB = NULL;
+#ifdef HAVE_GLES
+	qglGetIntegerv( GL_MAX_TEXTURE_UNITS, &glConfig.numTextureUnits );
+	//ri.Printf( PRINT_ALL, "...not using GL_ARB_multitexture, %i texture units\n", glConfig.maxActiveTextures );
+	//glConfig.maxActiveTextures=4;
+	qglMultiTexCoord2fARB = myglMultiTexCoord2f;
+	qglActiveTextureARB = glActiveTexture;
+	qglClientActiveTextureARB = glClientActiveTexture;
+	if ( glConfig.numTextureUnits > 1 )
+	{
+		ri.Printf( PRINT_ALL, "...using GL_ARB_multitexture (%i texture units)\n", glConfig.numTextureUnits );
+	}
+	else
+	{
+		qglMultiTexCoord2fARB = NULL;
+		qglActiveTextureARB = NULL;
+		qglClientActiveTextureARB = NULL;
+		ri.Printf( PRINT_ALL, "...not using GL_ARB_multitexture, < 2 texture units\n" );
+	}
+#else
 	if ( SDL_GL_ExtensionSupported( "GL_ARB_multitexture" ) )
 	{
 		if ( r_ext_multitexture->value )
@@ -729,6 +777,7 @@ static void GLimp_InitExtensions( void )
 	{
 		ri.Printf( PRINT_ALL, "...GL_ARB_multitexture not found\n" );
 	}
+#endif
 
 	// GL_EXT_compiled_vertex_array
 	if ( SDL_GL_ExtensionSupported( "GL_EXT_compiled_vertex_array" ) )

@@ -273,7 +273,9 @@ RB_TestFlare
 ==================
 */
 void RB_TestFlare( flare_t *f ) {
+#ifndef HAVE_GLES
 	float			depth;
+#endif
 	qboolean		visible;
 	float			fade;
 	float			screenZ;
@@ -285,10 +287,14 @@ void RB_TestFlare( flare_t *f ) {
 	glState.finishCalled = qfalse;
 
 	// read back the z buffer contents
+#ifdef HAVE_GLES
+	screenZ = 0;
+#else	
 	qglReadPixels( f->windowX, f->windowY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth );
 
 	screenZ = backEnd.viewParms.projectionMatrix[14] / 
 		( ( 2*depth - 1 ) * backEnd.viewParms.projectionMatrix[11] - backEnd.viewParms.projectionMatrix[10] );
+#endif	
 
 	visible = ( -f->eyeZ - -screenZ ) < 24;
 

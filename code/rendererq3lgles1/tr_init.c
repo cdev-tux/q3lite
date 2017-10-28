@@ -380,8 +380,24 @@ byte *RB_ReadPixels(int x, int y, int width, int height, size_t *offset, int *pa
 	// Allocate a few more bytes so that we can choose an alignment we like
 	buffer = ri.Hunk_AllocateTempMemory(padwidth * height + *offset + packAlign - 1);
 	
+#ifdef HAVE_GLES
+	bufstart=buffer;
+	padwidth=linelen;
+	int p2width=1, p2height=1;
+	int xx, yy, aa;
+	while (p2width<glConfig.vidWidth) p2width*=2;
+	while (p2height<glConfig.vidHeight) p2height*=2;
+	byte *source = (byte*) ri.Malloc( p2width * p2height * 4 );
+	qglReadPixels( 0, 0, p2width, p2height, GL_RGBA, GL_UNSIGNED_BYTE, source );
+	for (yy=y; yy<height; yy++)
+		for (xx=x; xx<width; xx++)
+			for (aa=0; aa<3; aa++)
+				buffer[yy*width*3+xx*3+aa]=source[(yy+y)*p2width*4+(xx+x)*4+aa];
+	ri.Free(source);
+#else
 	bufstart = PADP((intptr_t) buffer + *offset, packAlign);
 	qglReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, bufstart);
+#endif
 	
 	*offset = bufstart - buffer;
 	*padlen = padwidth - linelen;
@@ -868,7 +884,12 @@ void GL_SetDefaultState( void )
 	//
 	glState.glStateBits = GLS_DEPTHTEST_DISABLE | GLS_DEPTHMASK_TRUE;
 
+#ifdef HAVE_GLES
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+#else
 	qglPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+#endif
 	qglDepthMask( GL_TRUE );
 	qglDisable( GL_DEPTH_TEST );
 	qglEnable( GL_SCISSOR_TEST );
