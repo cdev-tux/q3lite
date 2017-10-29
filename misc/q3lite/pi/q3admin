@@ -1,0 +1,138 @@
+#!/bin/bash
+# This file is part of the Q3lite source code. https://github.com/cdev-tux/q3lite
+# See COPYING.txt for copyright and license details.
+#
+# q3admin - A script to start/stop/configure the background quake3 server.
+#
+logged_in_user=$(who | grep -m 1 "." | awk '{print $1}')
+if [ -z "$logged_in_user" ]; then
+	logged_in_user="pi"
+fi
+logfile=/home/$logged_in_user/.q3a/baseq3/qconsole.log
+# Change the next line to 0 if you don't want to display the logfile terminal, 1 if you do.
+display_logfile=1
+
+# Create status ( ) function so it can be called from each case
+server_status () {
+	echo -e "\e[01;37m\nQ3lite background server status:\e[0m"
+	sudo systemctl is-failed q3lite_ded.service > /dev/null
+	if [ "$?" -eq 0 ]; then
+		echo -e "The background service has failed, you can restart with: q3admin start"
+	fi
+	sudo systemctl is-active q3lite_ded.service > /dev/null
+	if [ "$?" -eq 0 ]; then
+		echo -e "Background server running?: yes"
+		echo -e "You can stop the server with: q3admin stop"
+	else
+		echo -e "Background server running?: no"
+	fi
+	sudo systemctl is-enabled q3lite_ded.service > /dev/null
+	if [ "$?" -eq 0 ]; then
+		echo -e "Server set to start at boot time?: yes\n"
+	else
+		echo -e "Server set to start at boot time?: no\n"
+	fi
+}
+
+tail_logfile () {
+	if [ "$display_logfile" -eq 1 ]; then
+		sudo systemctl is-active q3lite_ded.service > /dev/null
+		if [ "$?" -eq 0 ]; then
+			if [ ! -f "$logfile" ]; then
+				touch $logfile
+				chmod 644 $logfile
+				chown $logged_in_user:$logged_in_user $logfile
+			fi
+			sudo lxterminal --geometry=100x48 -t "Q3lite Background Server Console - (Read Only, Use Rcon to Enter Commands)" -e tail -f $logfile 2> /dev/null
+		else
+			echo -e "No logfile to show, the background server isn't running."
+		fi
+	else
+		echo -e "Logfile display is disabled."
+		echo -e "To enable set:  display_logfile=1  in $(dirname $0)/$(basename $0)\n"
+	fi
+}
+
+close_tail_logfile () {
+	if [ "$display_logfile" -eq 1 ]; then
+		tail_pid=$(ps aux | grep "[ ]$logfile" | awk '{print $2}')
+		if [ ! -z "$tail_pid" ]; then
+			kill -9 $tail_pid
+		fi
+		# Close any open Rcon windows too.
+		rcon_pid=$(ps aux | grep "[ ]/usr/local/bin/rcmd.sh" | awk '{print $2}')
+		if [ ! -z "$rcon_pid" ]; then
+			kill -9 $rcon_pid
+		fi
+	fi
+}
+
+# Main
+case "$1" in
+  start)
+	sudo systemctl is-active q3lite_ded.service > /dev/null
+	if [ "$?" -eq 0 ]; then
+		echo -e "The Q3lite background server is already running."
+		echo -e "To stop the server type: q3admin stop."
+		echo -e "To show the log file type: q3admin showlog."
+		server_status
+	else
+		echo -e "\nStarting the Q3lite background server, please wait..."
+		sudo systemctl start q3lite_ded.service 2> /dev/null
+		sleep 3
+		server_status
+		tail_logfile
+		/usr/local/bin/rcon
+	fi
+	;;
+  stop)
+	echo -e "\nStopping the Q3lite background server, please wait...."
+	sudo systemctl stop q3lite_ded.service &
+	close_tail_logfile
+	sleep 3
+	server_status
+	;;
+  status)
+	server_status
+	;;
+  boot)
+	echo -e "\nEnable starting the server at boot time, please wait...\n"
+	sudo systemctl enable q3lite_ded.service 2> /dev/null
+	sleep 3
+	server_status
+	;;
+  noboot)
+	echo -e "\nDisable starting the server at boot time, please wait...\n"
+	sudo systemctl disable q3lite_ded.service 2> /dev/null
+	sleep 3
+	server_status
+	;;
+  showlog)
+	if [ "$display_logfile" -eq 1 ]; then
+		if ! $(ps aux | grep "[ ]$logfile" | awk '{print $2}'); then
+			tail_logfile
+		else
+			echo -e "\nNo logfile to show, the background server isn't running.\n"
+		fi
+	else
+		echo -e "\nThe showlog command is disabled."
+		echo -e "To enable set:  display_logfile=1  in $(dirname $0)/$(basename $0)\n"
+	fi
+	;;
+  *)
+	echo -e "\e[01;37m\nq3admin: Start/stop/configure the Q3lite background server.\e[0m"
+	echo -e "Usage: q3admin {start|stop|status|boot|noboot|showlog}" >&2
+	echo -e "Example: q3admin start" >&2
+	echo -e "    [start] Starts the Q3lite background server with a read-only logfile terminal." >&2
+	echo -e "    [stop] Stops the Q3lite background server and closes the logfile terminal." >&2
+	echo -e "    [status] Reports if the Q3lite background server is running and set to start at boot time." >&2
+	echo -e "    [boot] Sets the Q3lite background server to start at boot time." >&2
+	echo -e "    [noboot] Sets the Q3lite background server to NOT start at boot time." >&2
+	echo -e "    [showlog] Launch a read-only console logfile terminal.\n" >&2
+	exit 3
+	;;
+esac
+
+exit 0
+
+

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Q3lite
+Comment=Quake3 for embedded systems
+Exec=sudo /usr/local/bin/q3lite
+Icon=/usr/share/pixmaps/q3lite.png
+Terminal=false
+Type=Application
+NoDisplay=false
+Categories=Q3liteSubMenu;
+StartupNotify=true

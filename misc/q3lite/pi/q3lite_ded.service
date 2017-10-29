@@ -1,0 +1,24 @@
+[Unit]
+Description=This service spawns a Quake3 Q3lite dedicated server.
+# Place this file in /lib/systemd/system
+# To enable this service to launch at boot time, enter in a terminal: systemctl enable q3lite_ded.service
+# To disable this service from launching at boot time, enter in a terminal: systemctl disable q3lite_ded.service
+# To check the state of all existing unit files, enter in a terminal: systemctl list-unit-files
+# Note that this service is run as root but the q3lite-ded script launches Q3lite as non-root user "quake3" by default.
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/q3lite-ded
+Restart=on-abort
+# there are several options to tweak the server's performance:
+# net_port defines the UDP-port used for connections to the server
+# fs_game should be the mod you want to play. Not necessary for vanilla-q3/FFA
+# dedicated 0 is non-dedicted an not available with q3ded, 1 is LAN, 2 is Internet
+# sv_pure 1 prevents clients from using their own pk3-files
+# com_hunkmegs defaults to 56, should be 128/192/256 on a modern system(?)
+# rate 25000 defines the rate in which client & server communicate
+# snaps 40 defines gamestate-snapshots client & server exchange in secs
+# cl_maxpackets 125 max amount of FPS being counted on the server-side
+
+[Install]
+WantedBy=multi-user.target

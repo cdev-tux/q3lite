@@ -1,0 +1,124 @@
+#!/bin/bash
+# This file is part of the Q3lite source code. https://github.com/cdev-tux/q3lite
+# See COPYING.txt for copyright and license details.
+
+
+q3dir="/usr/local/games/quake3"
+logged_in_user=$(who | grep -m 1 "." | awk '{print $1}')
+if [ -z "$logged_in_user" ]; then
+	q3homepath="/home/pi/.q3a"
+else
+	q3homepath="/home/$logged_in_user/.q3a"
+fi
+q3user="$logged_in_user"
+
+# Disable keyboard input to the desktop x11 server if it's running (fixes SDL2 keypress leakage issue).
+# This script will try to determine the correct keyboard ID's to disable, but if the auto-detection
+# fails then you can determine the ID's manually by using the instructions below.
+# Enter "xinput" in a terminal window to show a list of all input devices.  Change the line below to use
+# the id number(s) of your keyboard from the "xinput" command. Use the ID numbers from each line
+# that does NOT contain the word "Virtual". If your keyboard uses ID 6, 7, and 8
+# then set the following line to: xinput_id="6 7 8". See the Q3lite FAQ for details.
+
+xinput_id=""
+
+# Delete any .pid files left over from a previous game crash, otherwise the game
+# will toss up a warning box back on the desktop and leave you with a black screen.
+
+rm -f $q3homepath/baseq3/*.pid
+
+# The following line that begins with "settings=" contains the command line arguments supplied
+# to the game when it starts. Change these settings to match your desired settings.  Don't modify
+# the line that begins with "timedemo=" or it may break the timedemo function.
+# Settings for vm_ui and vm_cgame:
+# +set vm_* 0 = .dll files are used (Windows)
+# +set vm_* 1 = .so files are used (Linux, Mac)
+# +set vm_* 2 = .qvm files are used (Quake Virtual Machine, default)
+
+settings="+set com_hunkMegs 192 +set com_zoneMegs 24 +set com_soundMegs 16 +set fs_homepath $q3homepath +set vm_ui 2 +set vm_cgame 2 +set com_introplayed 1 +set com_protocol 68"
+timedemo="$settings +set timedemo 1 +demo four"
+
+if [ $(uname -m) = armv7l ]; then
+	arch="armv7l"
+else
+	arch="arm"
+fi
+
+# Check to see if the GUI is running.
+if systemctl is-active graphical.target > /dev/null; then
+	gui="yes"
+	# Attempt to auto-detect the keyboard ID's to disable keyboard input to the desktop x11 server.
+	if [ "$xinput_id" = "" ]; then
+		xinput_id=$(xinput | grep -i "id=" | grep -i -v "Virtual" | grep -Po 'id=\K[^=[]' | tr '\n' ' ' | sed 's/[ ]*$//')
+	fi
+	# Echo the xinput keyboard ID's for troubleshooting purposes.
+	echo -e "\nxinput_id=$xinput_id\n"
+
+# Uncomment the xinput_id="" line below to prevent xinput from disabling keyboard input to the x11 server.
+# Caution, this will allow keystrokes to leak back to the desktop which can cause all sorts of mayhem.
+# Leave a text editor like gedit open and in focus on the desktop to catch keystrokes.  This is used for
+# troubleshooting.
+#xinput_id=""
+
+	# Disable keyboard input to the x11 server for each keyboard id.
+	if [ "$xinput_id" != "" ]; then
+		for xid in $xinput_id;
+		do
+			xinput --disable $xid;
+			echo -e "xinput disabled keyboard ID=$xid";
+		done
+	else
+		echo -e "\nUnable to determine xinput ID to disable keyboard input to the x11 server."
+		echo -e "This may allow keyboard keypresses to leak back to the desktop per an SDL2 issue."
+		echo -e "See the Q3lite FAQ for details.\n"
+	fi
+fi
+
+# Set Q3lite video resolution mode.  Enter "tvservice -m DMT" and
+# "tvservice -m CEA" in a terminal window to list available video modes.
+# Uncomment the following line and set your in-game resolution if desired.
+#tvservice -e "DMT 85"
+
+# Start Q3lite under the user account.
+if [ "$1" = "timedemo" ]; then
+	if [  -f  $q3dir/quake3.$arch ]; then
+		sudo -u $q3user $q3dir/quake3.$arch $timedemo
+	else
+		echo -e "Unable to find $q3dir/quake3.$arch binary, exiting...\n"
+		exit 1
+	fi
+else
+	if [  -f  $q3dir/quake3.$arch ]; then
+		sudo -u $q3user $q3dir/quake3.$arch $settings
+	else
+		echo -e "Unable to find $q3dir/quake3.$arch binary, exiting...\n"
+		exit 2
+	fi
+fi
+
+# Reset desktop video resolution mode.  Enter "tvservice -m DMT" and
+# "tvservice -m CEA" in a terminal window to list available video modes.
+# Uncomment the following line and set the desired desktop video resolution mode..
+#tvservice -e "DMT 82"
+
+if [ "$gui" = "yes" ]; then
+	# Re-enable keyboard input to the desktop x11 server if it's running.
+	if [ "$xinput_id" != "" ]; then
+		for xid in $xinput_id;
+		do
+			xinput -enable $xid;
+			echo -e "xinput enabled keyboard ID=$xid";
+		done
+	fi
+
+	# Return to the desktop if it was running, otherwise restart tty1 console to fix an issue with SDL2 not
+	# reinitializing the console properly after exiting (hidden console text, stuck cursor).
+	sudo chvt 1
+	sudo chvt 7
+else
+	sudo chvt 2
+	sudo chvt 1
+	sudo systemctl restart getty@tty1.service
+fi
+
+exit 0

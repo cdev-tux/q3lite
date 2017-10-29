@@ -1,0 +1,62 @@
+#!/bin/bash
+# This file is part of the Q3lite source code. https://github.com/cdev-tux/q3lite
+# See COPYING.txt for copyright and license details.
+
+logged_in_user=$(who | grep -m 1 "." | awk '{print $1}')
+if [ -z "$logged_in_user" ]; then
+	q3homepath="/home/pi/.q3a"
+else
+	q3homepath="/home/$logged_in_user/.q3a"
+fi
+q3user="quake3"
+q3dir="/usr/local/games/quake3"
+
+# To manually set a static IP address for the server:
+# Add the command line argument "+set net_ip $ip" below (without quote marks) for ipv4 or "+set net_ip $ip6" below (for ipv6)
+# and uncomment (remove preceding hash mark) the line starting with "ip=" if your server has a static ip address.
+# Change 192.168.0.2 to your server's ip address.
+#ip="192.168.0.2"
+
+# To manually set the port number for the server:
+# Default port = "27960" Add the command line argument +set net_port $port  and uncomment (remove preceding hash mark)
+# the line starting with "port=" to set the port to use for your server. If you want an Internet server (+set dedicated 2) then you'll need
+# to open this port on your firewall or router and forward the UDP network packets to the machine that will act as the dedicated server.
+#port="27960"
+
+# The following line that begins with "settings=" contains the command line arguments supplied
+# to the game when it starts. Change these settings to match your desired settings.
+#
+# Settings for vm_game; defaults to 2 so add "+set vm_game 1" below to use .so shared object files.
+# You'll need to compile Q3lite with BUILD_GAME_SO=1 in make-raspberrypi.sh to use .so files.
+# +set vm_game 0 means .dll files are used (Windows)
+# +set vm_game 1 means .so files are used (Linux, Mac)
+# +set vm_game 2 means .qvm files are used (Quake Virtual Machine, default)
+#
+# Settings for dedicated:
+# +set dedicated 1 means LAN server for your local network (does not ping the Master Server) .
+# +set dedicated 2 means Internet server (pings the Master Server).
+# +set vm_game 2 +set com_hunkMegs 196 +set com_zoneMegs 24 +set com_soundMegs 16
+
+settings="+set dedicated 1 +set fs_homepath $q3homepath +set fs_basepath $q3dir +set sv_allowDownload 0 +set sv_fps 20 +set com_protocol 71 +set com_legacyprotocol 68 +set com_pipefile pipefile +set g_gametype 0 +set sv_maxClients 9 +set sv_privateClients 1 +exec server.cfg"
+
+if [ `uname -m` = armv7l ]; then
+	arch="armv7l"
+else
+	arch="arm"
+fi
+
+rm -f $q3homepath/baseq3/pipefile
+
+if [  -f  $q3dir/q3ded.$arch ]; then
+	if id "$q3user" > /dev/null 2>&1; then
+		sudo -u $q3user $q3dir/q3ded.$arch $settings
+	else
+		echo -e "Unable to start the server under the $q3user account, user $q3user doesn't exist."
+		exit 1
+	fi
+else
+	echo -e "Unable to find $q3dir/q3ded.$arch binary, exiting...\n"
+	exit 2
+fi
+
+exit 0

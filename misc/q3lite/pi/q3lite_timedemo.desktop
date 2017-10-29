@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Q3lite Timedemo
+Comment=Q3lite Timedemo
+Exec=sudo /usr/local/bin/q3lite timedemo
+Icon=/usr/share/pixmaps/q3lite_timedemo.png
+Terminal=false
+Type=Application
+NoDisplay=false
+Categories=Q3liteSubMenu;
+StartupNotify=true

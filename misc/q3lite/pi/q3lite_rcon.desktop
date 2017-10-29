@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Remote Console
+Comment=Background Server Remote Console
+Exec=/usr/local/bin/rcon
+Icon=/usr/share/pixmaps/q3lite_rcon.png
+Terminal=false
+Type=Application
+NoDisplay=false
+Categories=Q3liteSubMenu;
+StartupNotify=true

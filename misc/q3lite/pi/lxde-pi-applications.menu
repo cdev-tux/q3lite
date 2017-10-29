@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<!DOCTYPE Menu
+  PUBLIC '-//freedesktop//DTD Menu 1.0//EN'
+  'http://standards.freedesktop.org/menu-spec/menu-1.0.dtd'>
+<Menu>
+	<Name>Applications</Name>
+	<MergeFile type="parent">/etc/xdg/menus/lxde-pi-applications.menu</MergeFile>
+	<Menu>
+		<!-- Parent Menu -->
+		<Name>Games</Name>
+		<Menu>
+			<!-- Submenu -->
+			<Name>Q3lite</Name>
+			<Directory>q3lite.directory</Directory>
+			<Include>
+				<And>
+					<Category>Q3liteSubMenu</Category>
+				</And>
+			</Include>
+		</Menu>
+	</Menu>
+</Menu>

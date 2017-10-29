@@ -1,0 +1,16 @@
+#!/bin/bash
+# This file is part of the Q3lite source code. https://github.com/cdev-tux/q3lite
+# See COPYING.txt for copyright and license details.
+#
+# Rcon sends console commands to the Q3lite background server service.
+
+# Check to see if Rcon is already running.
+rcon_pid=$(ps aux | grep "[ ]bash /usr/local/bin/rcmd.sh" | awk '{print $2}')
+if [ -z "$rcon_pid" ]; then
+	sudo lxterminal --geometry=45x11 -t "Q3lite Background Server Rcon" -e bash /usr/local/bin/rcmd.sh
+else
+	echo -e "\nRcon is already running.\n"
+fi
+
+
+

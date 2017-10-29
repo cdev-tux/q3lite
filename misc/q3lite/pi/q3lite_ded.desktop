@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Q3lite Server
+Comment=Q3lite Dedicated Server
+#TryExec=lxterminal --geometry=100x50 -t "Q3lite Server Console" -e sudo /usr/local/bin/q3lite-ded
+Exec=lxterminal --geometry=100x50 -t "Q3lite Server Console" -e sudo /usr/local/bin/q3lite-ded
+Icon=/usr/share/pixmaps/q3lite_server.png
+Terminal=false
+Type=Application
+NoDisplay=false
+Categories=Q3liteSubMenu;
+StartupNotify=true
