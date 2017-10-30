@@ -630,6 +630,26 @@ void Con_DrawNotify (void)
 
 }
 
+// Rainbow color effect
+static vec4_t conColourTable[15] = {
+	{1, 0, 0, 1},		//conColorRed
+	{1, 0.25f, 0, 1},	//conColorRedOrange
+	{1, 0.5f, 0, 1},	//conColorOrange
+	{1, 0.75f, 0, 1},	//conColorOrangeYellow
+	{1, 1, 0, 1},		//conColorYellow
+	{0.5f, 1, 0, 1},	//conColorYellowGreen
+	{0, 1, 0, 1},		//conColorGreen
+	{0, 1, 0.25f, 1},	//conColorGreenTurq
+	{0, 1, 0.5f, 1},	//conColorTurquoise
+	{0, 1, 1, 1},		//conColorCyan
+	{0, 0.5f, 1, 1},	//conColorCyanBlue
+//	{0, 0, 1, 1},		//conColorBlue
+	{0.25f, 0, 1, 1},	//conColorBluePurple
+	{0.5f, 0, 1, 1},	//conColorPurple
+	{1, 0, 1, 1},		//conColorPink
+	{1, 0, 0.5f, 1}		//conColorMagenta
+};
+
 /*
 ================
 Con_DrawSolidConsole
@@ -674,15 +694,16 @@ void Con_DrawSolidConsole( float frac ) {
 	SCR_FillRect( 0, y, SCREEN_WIDTH, 2, color );
 
 
-	// draw the version number
-
-	re.SetColor( g_color_table[ColorIndex(COLOR_RED)] );
-
+	// draw the version number with color cycling
 	i = strlen( Q3_VERSION );
-
+	y = (cls.realtime >> 6);
 	for (x=0 ; x<i ; x++) {
-		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x + 1 ) * SMALLCHAR_WIDTH,
-			lines - SMALLCHAR_HEIGHT, Q3_VERSION[x] );
+		if (Q3_VERSION[x] ==' ')
+			continue;
+		re.SetColor( conColourTable[y&14] );
+		y++;
+		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x +1) * SMALLCHAR_WIDTH,
+			(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), Q3_VERSION[x] );
 	}
 
 
