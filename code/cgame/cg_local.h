@@ -1178,6 +1178,7 @@ extern	vmCvar_t		cg_oldRocket;
 extern	vmCvar_t		cg_oldPlasma;
 extern	vmCvar_t		cg_trueLightning;
 extern	vmCvar_t		cg_nochatbeeps;
+extern	vmCvar_t		cg_novotebeeps;
 #ifdef MISSIONPACK
 extern	vmCvar_t		cg_redTeamName;
 extern	vmCvar_t		cg_blueTeamName;

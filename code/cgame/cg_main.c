@@ -186,6 +186,7 @@ vmCvar_t	cg_oldRocket;
 vmCvar_t	cg_oldPlasma;
 vmCvar_t	cg_trueLightning;
 vmCvar_t	cg_nochatbeeps;
+vmCvar_t	cg_novotebeeps;
 
 #ifdef MISSIONPACK
 vmCvar_t 	cg_redTeamName;
@@ -322,7 +323,8 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_oldRocket, "cg_oldRocket", "1", CVAR_ARCHIVE},
 	{ &cg_oldPlasma, "cg_oldPlasma", "1", CVAR_ARCHIVE},
 	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE},
-	{ &cg_nochatbeeps, "cg_nochatbeeps", "0", CVAR_ARCHIVE}
+	{ &cg_nochatbeeps, "cg_nochatbeeps", "0", CVAR_ARCHIVE},
+	{ &cg_novotebeeps, "cg_novotebeeps", "0", CVAR_ARCHIVE}
 //	{ &cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO | CVAR_ARCHIVE }
 };
 
