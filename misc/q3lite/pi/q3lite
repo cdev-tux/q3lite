@@ -11,6 +11,7 @@ else
 	q3homepath="/home/$logged_in_user/.q3a"
 fi
 q3user="$logged_in_user"
+current_res="$(tvservice -s)"
 
 # Disable keyboard input to the desktop x11 server if it's running (fixes SDL2 keypress leakage issue).
 # This script will try to determine the correct keyboard ID's to disable, but if the auto-detection
@@ -96,11 +97,18 @@ else
 	fi
 fi
 
+# If the game resolution is different than the desktop resolution then enable
+# flipping the virtual terminal to 1 and back to 7, otherwise go strait to desktop.
+if [ "$current_res" != "$(tvservice -s)" ]; then
+	flipvt="yes"
+fi
+
 # Reset desktop video resolution mode.  Enter "tvservice -m DMT" and
 # "tvservice -m CEA" in a terminal window to list available video modes.
-# Uncomment the following line and set the desired desktop video resolution mode..
+# Uncomment the following line and set the desired desktop video resolution mode.
 #tvservice -e "DMT 82"
 
+# Return to the desktop if it's running, otherwise restart tty1 console.
 if [ "$gui" = "yes" ]; then
 	# Re-enable keyboard input to the desktop x11 server if it's running.
 	if [ "$xinput_id" != "" ]; then
@@ -110,11 +118,10 @@ if [ "$gui" = "yes" ]; then
 			echo -e "xinput enabled keyboard ID=$xid";
 		done
 	fi
-
-	# Return to the desktop if it was running, otherwise restart tty1 console to fix an issue with SDL2 not
-	# reinitializing the console properly after exiting (hidden console text, stuck cursor).
-	sudo chvt 1
-	sudo chvt 7
+	if [ "$flipvt" = "yes" ]; then
+		sudo chvt 1
+		sudo chvt 7
+	fi
 else
 	sudo chvt 2
 	sudo chvt 1
