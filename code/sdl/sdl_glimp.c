@@ -79,6 +79,8 @@ void GLimp_Shutdown( void )
 	ri.IN_Shutdown();
 
 	SDL_QuitSubSystem( SDL_INIT_VIDEO );
+	SDL_DestroyWindow( SDL_window );
+	SDL_window = NULL;
 }
 
 /*
