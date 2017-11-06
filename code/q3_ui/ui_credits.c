@@ -85,6 +85,48 @@ static void UI_CreditMenu_Draw_ioq3( void ) {
 
 
 /*
+===============
+UI_CreditMenu_Draw_q3lite
+===============
+*/
+static void UI_CreditMenu_Draw_q3lite( void ) {
+	int		y;
+	int		i;
+
+	static const char *lines[] = {
+		" ",
+		"Quake III Arena",
+		"for embedded systems",
+		" ",
+		"Source code:",
+		"https://github.com/cdev-tux/q3lite",
+		" ",
+		"Documentation:",
+		"https://github.com/cdev-tux/q3lite/wiki",
+		" ",
+		"Maintainer:",
+		"cdev-tux",
+		" ",
+		"Thank you contributors!",
+		NULL
+	};
+
+	UI_DrawHandlePic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, uis.menuBackShader );
+
+	// Center text vertically on the screen
+	y = (SCREEN_HEIGHT - ARRAY_LEN(lines) * (1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE)) / 2;
+
+	UI_DrawProportionalString( 320, y, "Q3lite", UI_CENTER|UI_BIGFONT, color_red );
+	y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+
+	for (i = 0; lines[i]; i++) {
+		UI_DrawProportionalString( 320, y, lines[i], UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, color_white );
+		y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+	}
+}
+
+
+/*
 =================
 UI_CreditMenu_Key
 =================
@@ -97,8 +139,12 @@ static sfxHandle_t UI_CreditMenu_Key( int key ) {
 	s_credits.frame++;
 	if (s_credits.frame == 1) {
 		s_credits.menu.draw = UI_CreditMenu_Draw_ioq3;
-	} else {
-		trap_Cmd_ExecuteText( EXEC_APPEND, "quit\n" );
+	}
+	if (s_credits.frame == 2) {
+		s_credits.menu.draw = UI_CreditMenu_Draw_q3lite;
+	}
+	if (s_credits.frame > 2) {
+	trap_Cmd_ExecuteText( EXEC_APPEND, "quit\n" );
 	}
 	return 0;
 }
