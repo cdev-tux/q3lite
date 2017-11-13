@@ -830,7 +830,7 @@ static void GLimp_InitExtensions( void )
 	}
 }
 
-#define R_MODE_FALLBACK 3 // 640 * 480
+#define R_MODE_FALLBACK -2 // Desktop resolution
 
 /*
 ===============
@@ -852,7 +852,7 @@ void GLimp_Init( qboolean coreContext)
 	if( ri.Cvar_VariableIntegerValue( "com_abnormalExit" ) )
 	{
 		ri.Cvar_Set( "r_mode", va( "%d", R_MODE_FALLBACK ) );
-		ri.Cvar_Set( "r_fullscreen", "0" );
+		ri.Cvar_Set( "r_fullscreen", "1" );
 		ri.Cvar_Set( "r_centerWindow", "0" );
 		ri.Cvar_Set( "com_abnormalExit", "0" );
 	}
