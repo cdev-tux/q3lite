@@ -237,6 +237,9 @@ static qboolean Sys_WritePIDFile( const char *gamedir )
 	else
 		Com_Printf( S_COLOR_YELLOW "Couldn't write %s.\n", pidFile );
 
+	// Disable Sys_Dialog boxes with the OpenGL ES renderer.
+	stale = qfalse;
+
 	return stale;
 }
 
@@ -706,9 +709,11 @@ int main( int argc, char **argv )
 	if( SDL_VERSIONNUM( ver.major, ver.minor, ver.patch ) <
 			SDL_VERSIONNUM( MINSDL_MAJOR, MINSDL_MINOR, MINSDL_PATCH ) )
 	{
-		Sys_Dialog( DT_ERROR, va( "SDL version " MINSDL_VERSION " or greater is required, "
-			"but only version %d.%d.%d was found. You may be able to obtain a more recent copy "
-			"from http://www.libsdl.org/.", ver.major, ver.minor, ver.patch ), "SDL Library Too Old" );
+		Sys_CrashLog( va("\nERROR: \tQ3lite requires SDL2 version " MINSDL_VERSION " but the only version\n"
+			"\tfound was %d.%d.%d. You can try reinstalling Q3lite, or manually \n"
+			"\tdownloading and compiling SDL2-2.0.4 per instructions in\n"
+			"\tthe \"Compiling and Installation Guide\" in the Q3lite wiki.\n",
+			ver.major, ver.minor, ver.patch ));
 
 		Sys_Exit( 1 );
 	}

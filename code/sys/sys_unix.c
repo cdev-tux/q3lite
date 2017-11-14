@@ -50,6 +50,22 @@ static char steamPath[ MAX_OSPATH ] = { 0 };
 // Used to store the GOG Quake 3 installation path
 static char gogPath[ MAX_OSPATH ] = { 0 };
 
+static const char *timestamp(void)
+{
+    time_t t = time(NULL);
+    char *retval = asctime(localtime(&t));
+    if (retval) {
+        char *ptr;
+        for (ptr = retval; *ptr; ptr++) {
+            if ((*ptr == '\r') || (*ptr == '\n')) {
+                *ptr = '\0';
+                break;
+            }
+        }
+    }
+    return retval ? retval : "[date unknown]";
+}
+
 /*
 ==================
 Sys_DefaultHomePath
@@ -552,9 +568,11 @@ void Sys_ErrorDialog( const char *error )
 
 	Sys_Print( va( "%s\n", error ) );
 
+/* Disable Sys_Dialog boxes with the OpenGL ES renderer.
 #ifndef DEDICATED
 	Sys_Dialog( DT_ERROR, va( "%s. See \"%s\" for details.", error, ospath ), "Error" );
 #endif
+*/
 
 	// Make sure the write path for the crashlog exists...
 
@@ -581,6 +599,62 @@ void Sys_ErrorDialog( const char *error )
 	}
 
 	// We're crashing, so we don't care much if write() or close() fails.
+	while( ( size = CON_LogRead( buffer, sizeof( buffer ) ) ) > 0 ) {
+		if( write( f, buffer, size ) != size ) {
+			Com_Printf( "ERROR: couldn't fully write to %s\n", fileName );
+			break;
+		}
+	}
+
+	close( f );
+}
+
+/*
+==============
+Sys_CrashLog
+
+Send error messages to crashlog.txt. This can be used
+for errors that happen before cvars are initialized.
+==============
+*/
+void Sys_CrashLog( const char *error )
+{
+	char buffer[ 1024 ];
+	unsigned int size;
+	int f = -1;
+	const char *homepath = (strcat( getenv ( "HOME" ), "/.q3a"));
+	const char *gamedir = "baseq3";
+	const char *fileName = "crashlog.txt";
+	char *dirpath = FS_BuildOSPath( homepath, gamedir, "");
+	char *ospath = FS_BuildOSPath( homepath, gamedir, fileName );
+
+	// Print crash log header/timestamp.
+	Sys_Print( va( "\n===================== %s =====================", timestamp() ) );
+
+	// Print error message.
+	Sys_Print( va( "\n%s\n", error ) );
+
+	// Make sure the write path for the crashlog exists...
+	if(!Sys_Mkdir(homepath))
+	{
+		Com_Printf("ERROR: couldn't create path '%s' for crash log.\n", homepath);
+		return;
+	}
+
+	if(!Sys_Mkdir(dirpath))
+	{
+		Com_Printf("ERROR: couldn't create path '%s' for crash log.\n", dirpath);
+		return;
+	}
+
+	// Use the Unix system APIs to write the crash log.
+	f = open( ospath, O_CREAT | O_TRUNC | O_WRONLY, 0640 );
+	if( f == -1 )
+	{
+		Com_Printf( "ERROR: couldn't open %s\n", fileName );
+		return;
+	}
+
 	while( ( size = CON_LogRead( buffer, sizeof( buffer ) ) ) > 0 ) {
 		if( write( f, buffer, size ) != size ) {
 			Com_Printf( "ERROR: couldn't fully write to %s\n", fileName );

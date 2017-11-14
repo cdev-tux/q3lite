@@ -23,11 +23,6 @@ current_res="$(tvservice -s)"
 
 xinput_id=""
 
-# Delete any .pid files left over from a previous game crash, otherwise the game
-# will toss up a warning box back on the desktop and leave you with a black screen.
-
-rm -f $q3homepath/baseq3/*.pid
-
 # The following line that begins with "settings=" contains the command line arguments supplied
 # to the game when it starts. Change these settings to match your desired settings.  Don't modify
 # the line that begins with "timedemo=" or it may break the timedemo function.
