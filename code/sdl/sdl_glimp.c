@@ -231,8 +231,8 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 	const char *glstring;
 #ifndef HAVE_GLES
 	int perChannelColorBits;
-	int samples;
 #endif
+	int samples;
 	int colorBits, depthBits, stencilBits;
 	int i = 0;
 	SDL_Surface *icon = NULL;
@@ -357,9 +357,9 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 		depthBits = r_depthbits->value;
 
 	stencilBits = r_stencilbits->value;
-#ifndef HAVE_GLES
+
 	samples = r_ext_multisample->value;
-#endif
+
 
 	for (i = 0; i < 16; i++)
 	{
@@ -491,6 +491,8 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 			}
 		}
 #else
+		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, samples ? 1 : 0 );
+		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, samples );
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
 
 		if( ( SDL_window = SDL_CreateWindow( CLIENT_WINDOW_TITLE, x, y,
