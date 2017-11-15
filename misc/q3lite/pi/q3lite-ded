@@ -37,7 +37,7 @@ q3dir="/usr/local/games/quake3"
 # +set dedicated 2 means Internet server (pings the Master Server).
 # +set vm_game 2 +set com_hunkMegs 196 +set com_zoneMegs 24 +set com_soundMegs 16
 
-settings="+set dedicated 1 +set fs_homepath $q3homepath +set fs_basepath $q3dir +set sv_allowDownload 0 +set sv_fps 20 +set com_protocol 71 +set com_legacyprotocol 68 +set com_pipefile pipefile +set g_gametype 0 +set sv_maxClients 9 +set sv_privateClients 1 +exec server.cfg"
+settings="+set dedicated 1 +set com_hunkMegs 128 +set com_zoneMegs 24 +set fs_homepath $q3homepath +set fs_basepath $q3dir +set sv_allowDownload 0 +set sv_fps 20 +set com_protocol 71 +set com_legacyprotocol 68 +set com_pipefile pipefile +set g_gametype 0 +set sv_maxClients 9 +set sv_privateClients 1 +exec server.cfg"
 
 if [ `uname -m` = armv7l ]; then
 	arch="armv7l"
