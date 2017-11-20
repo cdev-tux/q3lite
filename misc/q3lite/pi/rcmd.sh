@@ -1,10 +1,7 @@
 #!/bin/bash
-# This file is part of the Q3lite source code. https://github.com/cdev-tux/q3lite
-# See COPYING.txt for copyright and license details.
-#
-# To make sure the shell doesn't hang we run redirection in the background,
-# because fifo waits for output to come out.
-#OUTPUT="$( cat $pipefile  )" # release contents of pipe
+# Copyright (C) 2016-2017 cdev-tux - github.com/cdev-tux
+# This file is part of Q3lite source code.
+# See COPYING.txt for license details.
 
 logged_in_user=$(who | grep -m 1 "." | awk '{print $1}')
 if [ -z "$logged_in_user" ]; then
