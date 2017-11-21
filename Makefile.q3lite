@@ -129,9 +129,9 @@ endif #ifneq ($(PLATFORM_TYPE),)
 
 GIT_REVISION=$(shell git show -s --pretty=format:%h)
 ifneq ($(GIT_REVISION),)
-  VERSION=$(shell git tag --contains $(GIT_REVISION) | grep -v [^0-9.v])
+  VERSION=$(shell git tag --contains $(GIT_REVISION) | grep -v [^0-9.])
   ifeq ($(VERSION),)
-    VERSION=$(shell git tag | grep -v [^0-9.v] | sort -r --version-sort | head -n1)
+    VERSION=$(shell git tag | grep -v [^0-9.] | sort -r --version-sort | head -n1)
     ifneq ($(VERSION),)
       VERSION:=$(VERSION)+$(GIT_REVISION)
       override USE_GIT=1
