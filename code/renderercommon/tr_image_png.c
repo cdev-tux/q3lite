@@ -580,7 +580,7 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer)
 		{
 			/*
 			 *  Rewind to the start of this adventure
-			 *  and return unsuccessfull
+			 *  and return unsuccessful
 			 */
 
 			BufferedFileRewind(BF, BytesToRewind);
@@ -763,7 +763,7 @@ static uint32_t DecompressIDATs(struct BufferedFile *BF, uint8_t **Buffer)
 	ri.Free(CompressedData);
 
 	/*
-	 *  Check if the last puff() was successfull.
+	 *  Check if the last puff() was successful.
 	 */
 
 	if(!((puffResult == 0) && (puffDestLen > 0)))
