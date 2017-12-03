@@ -98,20 +98,37 @@ ifneq ($(PLATFORM_TYPE),)
 
   INSTALL=/usr/bin/install
 
-  ifndef SDL_CFLAGS
-    ifeq ($(USE_LOCAL_HEADERS),0)
-      SDL_CFLAGS += -I/usr/local/include/SDL2
-    else  
-      SDL_CFLAGS += -I$(SDLHDIR)/include
-    endif
-    SDL_CFLAGS += -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -D_REENTRANT -Wno-strict-prototypes
-  endif
+# Add local headers or not
+ifeq ($(USE_LOCAL_HEADERS),0)
+  SDL_CFLAGS += -I/usr/local/include/SDL2
+else  
+  SDL_CFLAGS += -I$(SDLHDIR)/include
+endif
 
-  ifeq ($(Q3LITE_INSTALL_SDL),1)
-    override SDL_LIBS=-L/usr/local/lib/q3lite -L/usr/local/lib -L$(Q3LITE_SRC_SDL_PATH) -Wl,-rpath,/usr/local/lib/q3lite:/usr/local/lib -lSDL2
-  else
-    override SDL_LIBS=-L/usr/local/lib/q3lite -L/usr/local/lib -Wl,-rpath,/usr/local/lib/q3lite:/usr/local/lib -lSDL2
-  endif
+ifneq ($(call bin_path, pkg-config),)
+  CURL_CFLAGS ?= $(shell pkg-config --silence-errors --cflags libcurl)
+  CURL_LIBS ?= $(shell pkg-config --silence-errors --libs libcurl)
+  SDL_CFLAGS += $(shell pkg-config --silence-errors --cflags sdl2|sed 's/-Dmain=SDL_main//')
+  FREETYPE_CFLAGS ?= $(shell pkg-config --silence-errors --cflags freetype2)
+else
+  # assume they're in the system default paths (no -I or -L needed)
+  CURL_LIBS ?= -lcurl
+endif
+
+# Use sdl2-config if all else fails
+ifneq ($(call bin_path, sdl2-config),)
+  SDL_CFLAGS += $(shell sdl2-config --cflags)
+else
+  SDL_CFLAGS += -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -D_REENTRANT
+endif
+
+SDL_CFLAGS += -Wno-strict-prototypes
+
+ifeq ($(Q3LITE_INSTALL_SDL),1)
+  override SDL_LIBS=-L/usr/local/lib/q3lite -L/usr/local/lib -L$(Q3LITE_SRC_SDL_PATH) -Wl,-rpath,/usr/local/lib/q3lite:/usr/local/lib -lSDL2 -lpthread
+else
+  override SDL_LIBS=-L/usr/local/lib/q3lite -L/usr/local/lib -Wl,-rpath,/usr/local/lib/q3lite:/usr/local/lib -lSDL2 -lpthread
+endif
 
   ifeq ($(PLATFORM_TYPE),raspberrypi) # Pi 1, Zero, Zero W
     PI_CFLAGS=-march=armv6zk -mfpu=vfp -mtune=arm1176jzf-s
