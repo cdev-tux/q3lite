@@ -2,14 +2,6 @@
 
 &nbsp; &nbsp; **Q3lite** is an updated [id Tech 3](https://en.wikipedia.org/wiki/Id_Tech_3) game engine for embedded Linux systems.  The project is a fork of [ioquake3](https://github.com/ioquake/ioq3) and based on the works of [twolife](https://github.com/twolife/ioq3) and [ptitSeb](https://github.com/ptitSeb/ioq3).  Q3lite provides users with an updated version of the engine running on [OpenGL ES](https://www.khronos.org/opengles) and [SDL2](https://www.libsdl.org).  The goal of the project is to add useful new features that enhance the game experience for both players and server administrators while staying in sync with the updated Quake III Arena engine.  The long term plan is to slim the code down to improve performance on low-end embedded processors, hence the name Q3lite.
 
-Source code for Q3lite: https://github.com/cdev-tux/q3lite  
-
-Custom Quake III Arena maps: https://lvlworld.com/  
-
-GtkRadiant Quake3 map editor: https://icculus.org/gtkradiant  
-
-XQF Game Server Browser: https://xqf.github.io/en  
-
 
 ### Platforms
 
