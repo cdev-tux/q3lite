@@ -1,6 +1,6 @@
 <img src="https://raw.githubusercontent.com/cdev-tux/q3lite/master/misc/q3lite/img/spacer.gif" width="1" height="256"><img src="https://raw.githubusercontent.com/cdev-tux/q3lite/master/misc/q3lite/img/q3lite_logo.gif" height="256" alt="Q3lite Logo"><img src="https://raw.githubusercontent.com/cdev-tux/q3lite/master/misc/q3lite/img/spacer.gif" width="1" height="256"><img src="https://raw.githubusercontent.com/cdev-tux/q3lite/master/misc/q3lite/img/q3lite-screenshot.jpg" height="256" alt="Q3lite Screenshot">
 
-&nbsp; &nbsp; **Q3lite** is an updated [id Tech 3](https://en.wikipedia.org/wiki/Id_Tech_3) game engine for embedded Linux systems.  The project is a fork of [ioquake3](https://github.com/ioquake/ioq3) and based on the works of [twolife](https://github.com/twolife/ioq3) and [ptitSeb](https://github.com/ptitSeb/ioq3).  Q3lite provides users with an updated version of the engine running on [OpenGL ES](https://www.khronos.org/opengles) and [SDL2](https://www.libsdl.org).  The goal of the project is to add useful new features that enhance the game experience for both players and server administrators while staying in sync with the updated Quake III Arena engine.  The long term plan is to slim the code down to improve performance on low-end embedded processors, hence the name Q3lite.
+&nbsp; &nbsp; **Q3lite** is an updated [id Tech 3](https://en.wikipedia.org/wiki/Id_Tech_3) game engine for embedded Linux systems.  The project is a fork of [ioquake3](https://github.com/ioquake/ioq3). Q3lite provides users with an updated version of the engine running on [OpenGL ES](https://www.khronos.org/opengles) and [SDL2](https://www.libsdl.org).  The goal of the project is to add useful new features that enhance the game experience for both players and server administrators while staying in sync with the updated Quake III Arena engine.  The long term plan is to slim the code down to improve performance on low-end embedded processors, hence the name Q3lite.
 
 
 ### Platforms
@@ -10,7 +10,6 @@
   * Raspberry Pi 2
   * Raspberry Pi 3
   * Pi platforms are supported on Raspbian Desktop and Raspbian Lite
-  * Other platforms are under development
 
 
 ### Features
@@ -27,6 +26,7 @@
   * Uninstaller included for removing installation if desired.
   * Includes all files and step by step instructions to run a dedicated server from the applications menu or as a systemd service at boot time.
   * Timedemo four runs at ~140 fps on a Pi 3 at 720P (without overclocking).
+  * Also includes a desktop Remote Console (rcon) application to send console commands to the background server.
 
 ### New Q3lite cvars
 These cvars are in addition to those currently available in the base game. All new features can be turned off to maintain default Quake3 behavior. Set client cvars in your autoexec.cfg file and server cvars in your server.cfg file, both located in ~/.q3a/baseq3.
@@ -71,7 +71,7 @@ Server cvars:
 
   * See the [Compiling and Installation Guide](https://github.com/cdev-tux/q3lite/wiki/Compiling-Install-Guide) for instructions on how to get Q3lite up and running.
   * Copy the pak0.pk3 file from your official copy of Quake III Arena or Steam version to `/usr/local/games/quake3/baseq3`.
-  * Set the memory split when installing on the Pi platform.  See section 2.2 of the [Q3lite FAQ](https://github.com/cdev-tux/q3lite/wiki/Q3lite-FAQ) for details.
+  * Set the memory split on the Pi platform.  See section 2.2 of the [Q3lite FAQ](https://github.com/cdev-tux/q3lite/wiki/Q3lite-FAQ) for details.
   * Be sure to set the necessary passwords in your server.cfg file located in ~/.q3a/baseq3.
 
 ### Documentation
@@ -100,8 +100,8 @@ Q3lite is licensed under a [modified version of the GNU GPLv3](https://github.co
 
 Please submit patches as a GitHub pull request.  
 
-  * One of the goals of Q3lite is to put the code on a diet to remove features that are too resource intensive to run well on embedded processors. This goes hand in hand with optimizing code to improve performance.
-  * Q3lite is looking to add new lightweight features to help server admins run their servers, as well as player features to enhance the Q3 experience.
+  * One of the goals of Q3lite is to remove features that are too resource intensive to run well on embedded processors. This goes hand in hand with optimizing code to improve performance.
+  * Q3lite is looking to add new lightweight features to help server administrators run their servers, as well as player features to enhance the Q3 experience.
   * The project also needs someone with [OpenGL ES](https://www.khronos.org/opengles) experience to help improve the renderer.
   * See the [Contributing Guide](https://github.com/cdev-tux/q3lite/wiki/Contributing) for details on how you can help.
 
