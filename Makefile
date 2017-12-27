@@ -35,9 +35,6 @@ endif
 ifndef BUILD_RENDERER_OPENGL2
   BUILD_RENDERER_OPENGL2=
 endif
-ifndef BUILD_AUTOUPDATER  # DON'T build unless you mean to!
-  BUILD_AUTOUPDATER=0
-endif
 
 #############################################################################
 #
@@ -232,10 +229,6 @@ ifndef USE_YACC
 USE_YACC=0
 endif
 
-ifndef USE_AUTOUPDATER  # DON'T include unless you mean to!
-USE_AUTOUPDATER=0
-endif
-
 ifndef DEBUG_CFLAGS
 DEBUG_CFLAGS=-ggdb -O0
 endif
@@ -271,9 +264,6 @@ LBURGDIR=$(MOUNT_DIR)/tools/lcc/lburg
 Q3CPPDIR=$(MOUNT_DIR)/tools/lcc/cpp
 Q3LCCETCDIR=$(MOUNT_DIR)/tools/lcc/etc
 Q3LCCSRCDIR=$(MOUNT_DIR)/tools/lcc/src
-AUTOUPDATERSRCDIR=$(MOUNT_DIR)/autoupdater
-LIBTOMCRYPTSRCDIR=$(AUTOUPDATERSRCDIR)/rsa_tools/libtomcrypt-1.17
-TOMSFASTMATHSRCDIR=$(AUTOUPDATERSRCDIR)/rsa_tools/tomsfastmath-0.13.1
 LOKISETUPDIR=misc/setup
 NSISDIR=misc/nsis
 SDLHDIR=$(MOUNT_DIR)/SDL2
@@ -281,30 +271,29 @@ LIBSDIR=$(MOUNT_DIR)/libs
 
 bin_path=$(shell which $(1) 2> /dev/null)
 
-# The autoupdater uses curl, so figure out its flags no matter what.
 # We won't need this if we only build the server
-
-# set PKG_CONFIG_PATH to influence this, e.g.
-# PKG_CONFIG_PATH=/opt/cross/i386-mingw32msvc/lib/pkgconfig
-ifneq ($(call bin_path, pkg-config),)
-  CURL_CFLAGS ?= $(shell pkg-config --silence-errors --cflags libcurl)
-  CURL_LIBS ?= $(shell pkg-config --silence-errors --libs libcurl)
-  OPENAL_CFLAGS ?= $(shell pkg-config --silence-errors --cflags openal)
-  OPENAL_LIBS ?= $(shell pkg-config --silence-errors --libs openal)
-  SDL_CFLAGS ?= $(shell pkg-config --silence-errors --cflags sdl2|sed 's/-Dmain=SDL_main//')
-  SDL_LIBS ?= $(shell pkg-config --silence-errors --libs sdl2)
-  FREETYPE_CFLAGS ?= $(shell pkg-config --silence-errors --cflags freetype2)
-else
-  # assume they're in the system default paths (no -I or -L needed)
-  CURL_LIBS ?= -lcurl
-  OPENAL_LIBS ?= -lopenal
-endif
-
-# Use sdl2-config if all else fails
-ifeq ($(SDL_CFLAGS),)
-  ifneq ($(call bin_path, sdl2-config),)
-    SDL_CFLAGS ?= $(shell sdl2-config --cflags)
-    SDL_LIBS ?= $(shell sdl2-config --libs)
+ifneq ($(BUILD_CLIENT),0)
+  # set PKG_CONFIG_PATH to influence this, e.g.
+  # PKG_CONFIG_PATH=/opt/cross/i386-mingw32msvc/lib/pkgconfig
+  ifneq ($(call bin_path, pkg-config),)
+    CURL_CFLAGS ?= $(shell pkg-config --silence-errors --cflags libcurl)
+    CURL_LIBS ?= $(shell pkg-config --silence-errors --libs libcurl)
+    OPENAL_CFLAGS ?= $(shell pkg-config --silence-errors --cflags openal)
+    OPENAL_LIBS ?= $(shell pkg-config --silence-errors --libs openal)
+    SDL_CFLAGS ?= $(shell pkg-config --silence-errors --cflags sdl2|sed 's/-Dmain=SDL_main//')
+    SDL_LIBS ?= $(shell pkg-config --silence-errors --libs sdl2)
+    FREETYPE_CFLAGS ?= $(shell pkg-config --silence-errors --cflags freetype2)
+  else
+    # assume they're in the system default paths (no -I or -L needed)
+    CURL_LIBS ?= -lcurl
+    OPENAL_LIBS ?= -lopenal
+  endif
+  # Use sdl2-config if all else fails
+  ifeq ($(SDL_CFLAGS),)
+    ifneq ($(call bin_path, sdl2-config),)
+      SDL_CFLAGS ?= $(shell sdl2-config --cflags)
+      SDL_LIBS ?= $(shell sdl2-config --libs)
+    endif
   endif
 endif
 
@@ -380,7 +369,6 @@ ifneq (,$(findstring "$(PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu" "gnu")
 
   THREAD_LIBS=-lpthread
   LIBS=-ldl -lm
-  AUTOUPDATER_LIBS += -ldl
 
   CLIENT_LIBS=$(SDL_LIBS)
   RENDERER_LIBS = $(SDL_LIBS) -lGL
@@ -608,8 +596,6 @@ ifdef MINGW
   endif
 
   LIBS= -lws2_32 -lwinmm -lpsapi
-  AUTOUPDATER_LIBS += -lwininet
-
   # clang 3.4 doesn't support this
   ifneq ("$(CC)", $(findstring "$(CC)", "clang" "clang++"))
     CLIENT_LDFLAGS += -mwindows
@@ -849,8 +835,6 @@ ifeq ($(PLATFORM),irix64)
   SHLIBLDFLAGS=-shared
 
   LIBS=-ldl -lm -lgen
-  AUTOUPDATER_LIBS += -ldl
-
   # FIXME: The X libraries probably aren't necessary?
   CLIENT_LIBS=-L/usr/X11/$(LIB) $(SDL_LIBS) \
     -lX11 -lXext -lm
@@ -905,7 +889,6 @@ ifeq ($(PLATFORM),sunos)
 
   THREAD_LIBS=-lpthread
   LIBS=-lsocket -lnsl -ldl -lm
-  AUTOUPDATER_LIBS += -ldl
 
   BOTCFLAGS=-O0
 
@@ -1002,16 +985,6 @@ ifneq ($(BUILD_GAME_QVM),0)
       $(B)/$(MISSIONPACK)/vm/qagame.qvm \
       $(B)/$(MISSIONPACK)/vm/ui.qvm
   endif
-endif
-
-ifneq ($(BUILD_AUTOUPDATER),0)
-  # PLEASE NOTE that if you run an exe on Windows Vista or later
-  #  with "setup", "install", "update" or other related terms, it
-  #  will unconditionally trigger a UAC prompt, and in the case of
-  #  ioq3 calling CreateProcess() on it, it'll just fail immediately.
-  #  So don't call this thing "autoupdater" here!
-  AUTOUPDATER_BIN := autosyncerator$(FULLBINEXT)
-  TARGETS += $(B)/$(AUTOUPDATER_BIN)
 endif
 
 ifeq ($(USE_OPENAL),1)
@@ -1112,15 +1085,6 @@ ifeq ($(USE_FREETYPE),1)
 
   BASE_CFLAGS += -DBUILD_FREETYPE $(FREETYPE_CFLAGS)
   RENDERER_LIBS += $(FREETYPE_LIBS)
-endif
-
-ifeq ($(USE_AUTOUPDATER),1)
-  CLIENT_CFLAGS += -DUSE_AUTOUPDATER -DAUTOUPDATER_BIN=\\\"$(AUTOUPDATER_BIN)\\\"
-  SERVER_CFLAGS += -DUSE_AUTOUPDATER -DAUTOUPDATER_BIN=\\\"$(AUTOUPDATER_BIN)\\\"
-endif
-
-ifeq ($(BUILD_AUTOUPDATER),1)
-  AUTOUPDATER_LIBS += $(LIBTOMCRYPTSRCDIR)/libtomcrypt.a $(TOMSFASTMATHSRCDIR)/libtfm.a
 endif
 
 ifeq ("$(CC)", $(findstring "$(CC)", "clang" "clang++"))
@@ -1354,9 +1318,6 @@ endif
 	@echo "  CLIENT_LIBS:"
 	$(call print_wrapped, $(CLIENT_LIBS))
 	@echo ""
-	@echo "  AUTOUPDATER_LIBS:"
-	$(call print_wrapped, $(AUTOUPDATER_LIBS))
-	@echo ""
 	@echo "  Output:"
 	$(call print_list, $(NAKED_TARGETS))
 	@echo ""
@@ -1380,7 +1341,6 @@ ifneq ($(PLATFORM),darwin)
 endif
 
 makedirs:
-	@$(MKDIR) $(B)/autoupdater
 	@$(MKDIR) $(B)/client/opus
 	@$(MKDIR) $(B)/client/vorbis
 	@$(MKDIR) $(B)/$(RQ3LGLES1DIR)
@@ -1402,6 +1362,33 @@ makedirs:
 	@$(MKDIR) $(B)/tools/rcc
 	@$(MKDIR) $(B)/tools/cpp
 	@$(MKDIR) $(B)/tools/lburg
+	@if [ ! -d $(BUILD_DIR) ];then $(MKDIR) $(BUILD_DIR);fi
+	@if [ ! -d $(B) ];then $(MKDIR) $(B);fi
+	@if [ ! -d $(B)/client ];then $(MKDIR) $(B)/client;fi
+	@if [ ! -d $(B)/client/opus ];then $(MKDIR) $(B)/client/opus;fi
+	@if [ ! -d $(B)/client/vorbis ];then $(MKDIR) $(B)/client/vorbis;fi
+	@if [ ! -d $(B)/renderergl1 ];then $(MKDIR) $(B)/renderergl1;fi
+	@if [ ! -d $(B)/renderergl2 ];then $(MKDIR) $(B)/renderergl2;fi
+	@if [ ! -d $(B)/renderergl2/glsl ];then $(MKDIR) $(B)/renderergl2/glsl;fi
+	@if [ ! -d $(B)/ded ];then $(MKDIR) $(B)/ded;fi
+	@if [ ! -d $(B)/$(BASEGAME) ];then $(MKDIR) $(B)/$(BASEGAME);fi
+	@if [ ! -d $(B)/$(BASEGAME)/cgame ];then $(MKDIR) $(B)/$(BASEGAME)/cgame;fi
+	@if [ ! -d $(B)/$(BASEGAME)/game ];then $(MKDIR) $(B)/$(BASEGAME)/game;fi
+	@if [ ! -d $(B)/$(BASEGAME)/ui ];then $(MKDIR) $(B)/$(BASEGAME)/ui;fi
+	@if [ ! -d $(B)/$(BASEGAME)/qcommon ];then $(MKDIR) $(B)/$(BASEGAME)/qcommon;fi
+	@if [ ! -d $(B)/$(BASEGAME)/vm ];then $(MKDIR) $(B)/$(BASEGAME)/vm;fi
+	@if [ ! -d $(B)/$(MISSIONPACK) ];then $(MKDIR) $(B)/$(MISSIONPACK);fi
+	@if [ ! -d $(B)/$(MISSIONPACK)/cgame ];then $(MKDIR) $(B)/$(MISSIONPACK)/cgame;fi
+	@if [ ! -d $(B)/$(MISSIONPACK)/game ];then $(MKDIR) $(B)/$(MISSIONPACK)/game;fi
+	@if [ ! -d $(B)/$(MISSIONPACK)/ui ];then $(MKDIR) $(B)/$(MISSIONPACK)/ui;fi
+	@if [ ! -d $(B)/$(MISSIONPACK)/qcommon ];then $(MKDIR) $(B)/$(MISSIONPACK)/qcommon;fi
+	@if [ ! -d $(B)/$(MISSIONPACK)/vm ];then $(MKDIR) $(B)/$(MISSIONPACK)/vm;fi
+	@if [ ! -d $(B)/tools ];then $(MKDIR) $(B)/tools;fi
+	@if [ ! -d $(B)/tools/asm ];then $(MKDIR) $(B)/tools/asm;fi
+	@if [ ! -d $(B)/tools/etc ];then $(MKDIR) $(B)/tools/etc;fi
+	@if [ ! -d $(B)/tools/rcc ];then $(MKDIR) $(B)/tools/rcc;fi
+	@if [ ! -d $(B)/tools/cpp ];then $(MKDIR) $(B)/tools/cpp;fi
+	@if [ ! -d $(B)/tools/lburg ];then $(MKDIR) $(B)/tools/lburg;fi
 
 #############################################################################
 # QVM BUILD TOOLS
@@ -1597,26 +1584,6 @@ $(Q3ASM): $(Q3ASMOBJ)
 
 
 #############################################################################
-# AUTOUPDATER
-#############################################################################
-
-define DO_AUTOUPDATER_CC
-$(echo_cmd) "AUTOUPDATER_CC $<"
-$(Q)$(CC) $(CFLAGS) -I$(LIBTOMCRYPTSRCDIR)/src/headers -I$(TOMSFASTMATHSRCDIR)/src/headers $(CURL_CFLAGS) -o $@ -c $<
-endef
-
-Q3AUTOUPDATEROBJ = \
-  $(B)/autoupdater/autoupdater.o
-
-$(B)/autoupdater/%.o: $(AUTOUPDATERSRCDIR)/%.c
-	$(DO_AUTOUPDATER_CC)
-
-$(B)/$(AUTOUPDATER_BIN): $(Q3AUTOUPDATEROBJ)
-	$(echo_cmd) "AUTOUPDATER_LD $@"
-	$(Q)$(CC) $(LDFLAGS) -o $@ $(Q3AUTOUPDATEROBJ) $(AUTOUPDATER_LIBS)
-
-
-#############################################################################
 # CLIENT/SERVER
 #############################################################################
 
@@ -1720,7 +1687,6 @@ Q3OBJ = \
   $(B)/client/sdl_snd.o \
   \
   $(B)/client/con_log.o \
-  $(B)/client/sys_autoupdater.o \
   $(B)/client/sys_main.o
 
 ifdef MINGW
@@ -2258,7 +2224,6 @@ Q3DOBJ = \
   $(B)/ded/null_snddma.o \
   \
   $(B)/ded/con_log.o \
-  $(B)/ded/sys_autoupdater.o \
   $(B)/ded/sys_main.o
 
 ifeq ($(ARCH),x86)
