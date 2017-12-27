@@ -749,7 +749,7 @@ During normal gameplay, a client packet will contain something like:
 */
 void CL_WritePacket( void ) {
 	msg_t		buf;
-	byte		data[ MAX_MSGLEN_BUF ];
+	byte		data[MAX_MSGLEN];
 	int			i, j;
 	usercmd_t	*cmd, *oldcmd;
 	usercmd_t	nullcmd;
@@ -765,7 +765,7 @@ void CL_WritePacket( void ) {
 	Com_Memset( &nullcmd, 0, sizeof(nullcmd) );
 	oldcmd = &nullcmd;
 
-	MSG_Init( &buf, data, MAX_MSGLEN );
+	MSG_Init( &buf, data, sizeof(data) );
 
 	MSG_Bitstream( &buf );
 	// write the current serverId so the server

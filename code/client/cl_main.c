@@ -453,25 +453,6 @@ void CL_CaptureVoip(void)
 	if ((useVad) && (!cl_voipSend->integer))
 		Cvar_Set("cl_voipSend", "1");  // lots of things reset this.
 
-/*
-====================
-CL_WriteGamestate
-====================
-*/
-static void CL_WriteGamestate( qboolean initial ) 
-{
-	byte		bufData[ MAX_MSGLEN_BUF ];
-	char		*s;
-	msg_t		msg;
-	int			i;
-	int			len;
-	entityState_t	*ent;
-	entityState_t	nullstate;
-
-	// write out the gamestate message
-	MSG_Init( &msg, bufData, MAX_MSGLEN );
-	MSG_Bitstream( &msg );
-
 	if (cl_voipSend->modified) {
 		qboolean dontCapture = qfalse;
 		if (clc.state != CA_ACTIVE)
@@ -594,11 +575,6 @@ CLIENT RELIABLE COMMAND COMMUNICATION
 
 =======================================================================
 */
-	clSnapshot_t *snap, *oldSnap; 
-	byte	bufData[ MAX_MSGLEN_BUF ];
-	msg_t	msg;
-	int		i, len;
-
 
 /*
 ======================
@@ -966,7 +942,7 @@ CL_ReadDemoMessage
 void CL_ReadDemoMessage( void ) {
 	int			r;
 	msg_t		buf;
-	byte		bufData[ MAX_MSGLEN_BUF ];
+	byte		bufData[ MAX_MSGLEN ];
 	int			s;
 
 	if ( !clc.demofile ) {
@@ -983,7 +959,7 @@ void CL_ReadDemoMessage( void ) {
 	clc.serverMessageSequence = LittleLong( s );
 
 	// init the message
-	MSG_Init( &buf, bufData, MAX_MSGLEN );
+	MSG_Init( &buf, bufData, sizeof( bufData ) );
 
 	// get the length
 	r = FS_Read (&buf.cursize, 4, clc.demofile);

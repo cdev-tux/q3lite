@@ -2193,10 +2193,10 @@ Returns last event time
 int Com_EventLoop( void ) {
 	sysEvent_t	ev;
 	netadr_t	evFrom;
-	byte		bufData[ MAX_MSGLEN_BUF ];
+	byte		bufData[MAX_MSGLEN];
 	msg_t		buf;
 
-	MSG_Init( &buf, bufData, MAX_MSGLEN );
+	MSG_Init( &buf, bufData, sizeof( bufData ) );
 
 	while ( 1 ) {
 		ev = Com_GetEvent();

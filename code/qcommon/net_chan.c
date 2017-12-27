@@ -581,6 +581,7 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 	va_list		argptr;
 	char		string[MAX_MSGLEN];
 
+
 	// set the header
 	string[0] = -1;
 	string[1] = -1;
@@ -594,7 +595,6 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 	// send the datagram
 	NET_SendPacket( sock, strlen( string ), string, adr );
 }
-
 
 /*
 ===============
@@ -641,7 +641,7 @@ int NET_StringToAdr( const char *s, netadr_t *a, netadrtype_t family )
 	if (!strcmp (s, "localhost")) {
 		Com_Memset (a, 0, sizeof(*a));
 		a->type = NA_LOOPBACK;
-		// as NA_LOOPBACK doesn't require ports report port was given.
+// as NA_LOOPBACK doesn't require ports report port was given.
 		return 1;
 	}
 
