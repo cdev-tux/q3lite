@@ -75,7 +75,7 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define BASETA				"missionpack"
 
 #ifndef PRODUCT_VERSION
-  #define PRODUCT_VERSION "1.36"
+  #define PRODUCT_VERSION "v1.0.1"
 #endif
 
 #ifndef PRODUCT_DATE
