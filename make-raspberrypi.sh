@@ -317,7 +317,6 @@ if [ -w $q3l_compile_path ]; then
 		BUILD_GAME_SO=0 \
 		BUILD_GAME_QVM=1 \
 		BUILD_STANDALONE=0 \
-		BUILD_AUTOUPDATER=0 \
 		SERVERBIN=q3ded \
 		CLIENTBIN=quake3 \
 		BUILD_RENDERER_OPENGL2=0 \
