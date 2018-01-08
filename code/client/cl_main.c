@@ -1333,6 +1333,7 @@ void CL_MapLoading( void ) {
 		Com_Memset( clc.serverMessage, 0, sizeof( clc.serverMessage ) );
 		Com_Memset( &cl.gameState, 0, sizeof( cl.gameState ) );
 		clc.lastPacketSentTime = -9999;
+		cls.framecount++;
 		SCR_UpdateScreen();
 	} else {
 		// clear nextmap so the cinematic shutdown doesn't execute it
@@ -1341,11 +1342,11 @@ void CL_MapLoading( void ) {
 		Q_strncpyz( clc.servername, "localhost", sizeof(clc.servername) );
 		clc.state = CA_CHALLENGING;		// so the connect screen is drawn
 		Key_SetCatcher( 0 );
+		cls.framecount++;
 		SCR_UpdateScreen();
 		clc.connectTime = -RETRANSMIT_TIMEOUT;
 		NET_StringToAdr( clc.servername, &clc.serverAddress, NA_UNSPEC);
 		// we don't need a challenge on the localhost
-
 		CL_CheckForResend();
 	}
 }
@@ -1430,6 +1431,13 @@ void CL_Disconnect( qboolean showMainMenu ) {
 	if (cl_useMumble->integer && mumble_islinked()) {
 		Com_Printf("Mumble: Unlinking from Mumble application\n");
 		mumble_unlink();
+
+	// Stop recording any video
+	if ( CL_VideoRecording() ) {
+		// Finish rendering current frame
+		cls.framecount++;
+		SCR_UpdateScreen();
+		CL_CloseAVI();
 	}
 #endif
 
@@ -1500,6 +1508,7 @@ void CL_Disconnect( qboolean showMainMenu ) {
 	// Stop recording any video
 	if( CL_VideoRecording( ) ) {
 		// Finish rendering current frame
+		cls.framecount++;
 		SCR_UpdateScreen( );
 		CL_CloseAVI( );
 	}
@@ -2975,10 +2984,10 @@ void CL_Frame ( int msec ) {
 			cls.realFrametime = msec;
 			cls.frametime = msec;
 			cls.realtime += cls.frametime;
+			cls.framecount++;
 			SCR_UpdateScreen();
 			S_Update();
 			Con_RunConsole();
-			cls.framecount++;
 			return;
 		}
 	}
@@ -3076,6 +3085,7 @@ void CL_Frame ( int msec ) {
 	CL_SetCGameTime();
 
 	// update the screen
+	cls.framecount++;
 	SCR_UpdateScreen();
 
 	// update audio
@@ -3093,8 +3103,6 @@ void CL_Frame ( int msec ) {
 	SCR_RunCinematic();
 
 	Con_RunConsole();
-
-	cls.framecount++;
 }
 
 
