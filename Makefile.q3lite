@@ -140,7 +140,7 @@ endif
     PI_CFLAGS=-march=armv8-a+crc -mfpu=vfpv4 -mtune=cortex-a53
   endif
   CFLAGS += -DHAVE_GLES $(PI_CFLAGS) -mfloat-abi=hard -Ofast -I/opt/vc/include
-  ifneq ($(wildcard /opt/vc/lib/libbrcmGLESv2.so),)
+  ifneq ($(wildcard /opt/vc/lib/libbrcmEGL.so),)
     ifneq ($(wildcard /opt/vc/lib/libbrcmGLESv2.so),)
       LDFLAGS += -L/opt/vc/lib -lbrcmEGL -lbrcmGLESv2
     else
