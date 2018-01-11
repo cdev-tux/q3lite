@@ -6,11 +6,12 @@
 q3dir="/usr/local/games/quake3"
 logged_in_user=$(who | grep -m 1 "." | awk '{print $1}')
 if [ -z "$logged_in_user" ]; then
-	q3homepath="/home/pi/.q3a"
+	q3l_user="pi"
 else
-	q3homepath="/home/$logged_in_user/.q3a"
+	q3l_user="$logged_in_user"
 fi
-q3user="$logged_in_user"
+q3l_userhome=$(sudo -u $q3l_user -H -s eval 'echo $HOME')
+q3l_homepath="$q3l_userhome/.q3a"
 current_res="$(tvservice -s)"
 
 # Disable keyboard input to the desktop x11 server if it's running (fixes SDL2 keypress leakage issue).
@@ -31,7 +32,7 @@ xinput_id=""
 # +set vm_* 1 = .so files are used (Linux, Mac)
 # +set vm_* 2 = .qvm files are used (Quake Virtual Machine, default)
 
-settings="+set com_hunkMegs 192 +set com_zoneMegs 24 +set com_soundMegs 16 +set fs_homepath $q3homepath +set vm_ui 2 +set vm_cgame 2 +set com_introplayed 1 +set com_protocol 68"
+settings="+set com_hunkMegs 192 +set com_zoneMegs 24 +set com_soundMegs 16 +set fs_homepath $q3l_homepath +set vm_ui 2 +set vm_cgame 2 +set com_introplayed 1 +set com_protocol 68"
 timedemo="$settings +set timedemo 1 +demo four"
 
 if [ $(uname -m) = armv7l ]; then
@@ -78,14 +79,14 @@ fi
 # Start Q3lite under the user account.
 if [ "$1" = "timedemo" ]; then
 	if [  -f  $q3dir/quake3.$arch ]; then
-		sudo -u $q3user $q3dir/quake3.$arch $timedemo
+		sudo -u $q3l_user $q3dir/quake3.$arch $timedemo
 	else
 		echo -e "Unable to find $q3dir/quake3.$arch binary, exiting...\n"
 		exit 1
 	fi
 else
 	if [  -f  $q3dir/quake3.$arch ]; then
-		sudo -u $q3user $q3dir/quake3.$arch $settings
+		sudo -u $q3l_user $q3dir/quake3.$arch $settings
 	else
 		echo -e "Unable to find $q3dir/quake3.$arch binary, exiting...\n"
 		exit 2

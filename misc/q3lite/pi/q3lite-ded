@@ -5,10 +5,12 @@
 
 logged_in_user=$(who | grep -m 1 "." | awk '{print $1}')
 if [ -z "$logged_in_user" ]; then
-	q3homepath="/home/pi/.q3a"
+	q3l_user="pi"
 else
-	q3homepath="/home/$logged_in_user/.q3a"
+	q3l_user="$logged_in_user"
 fi
+q3l_userhome=$(sudo -u $q3l_user -H -s eval 'echo $HOME')
+q3l_homepath="$q3l_userhome/.q3a"
 q3user="quake3"
 q3dir="/usr/local/games/quake3"
 
@@ -38,7 +40,7 @@ q3dir="/usr/local/games/quake3"
 # +set dedicated 2 means Internet server (pings the Master Server).
 # +set vm_game 2 +set com_hunkMegs 196 +set com_zoneMegs 24 +set com_soundMegs 16
 
-settings="+set dedicated 1 +set com_hunkMegs 128 +set com_zoneMegs 24 +set fs_homepath $q3homepath +set fs_basepath $q3dir +set sv_allowDownload 0 +set sv_fps 20 +set com_protocol 71 +set com_legacyprotocol 68 +set com_pipefile pipefile +set g_gametype 0 +set sv_maxClients 9 +set sv_privateClients 1 +exec server.cfg"
+settings="+set dedicated 1 +set com_hunkMegs 128 +set com_zoneMegs 24 +set fs_homepath $q3l_homepath +set fs_basepath $q3dir +set sv_allowDownload 0 +set sv_fps 20 +set com_protocol 71 +set com_legacyprotocol 68 +set com_pipefile pipefile +set g_gametype 0 +set sv_maxClients 9 +set sv_privateClients 1 +exec server.cfg"
 
 if [ `uname -m` = armv7l ]; then
 	arch="armv7l"
@@ -46,7 +48,7 @@ else
 	arch="arm"
 fi
 
-rm -f $q3homepath/baseq3/pipefile
+rm -f $q3l_homepath/baseq3/pipefile
 
 if [  -f  $q3dir/q3ded.$arch ]; then
 	if id "$q3user" > /dev/null 2>&1; then

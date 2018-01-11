@@ -54,6 +54,7 @@ if [ -z "$logged_in_user" ]; then
 else
 	q3l_user="$logged_in_user"
 fi
+q3l_userhome=$(sudo -u $q3l_user -H -s eval 'echo $HOME')
 if [ $(dirname "$0") = "." ]; then
 	q3l_compile_path=$PWD
 else
@@ -61,12 +62,12 @@ else
 fi
 inst_upd="no"
 q3user="quake3"
-q3l_homepath="/home/$q3l_user/.q3a"
+q3l_homepath="$q3l_userhome/.q3a"
 q3l_basepath="/usr/local/games/quake3"
-q3l_dir_dir="/home/$q3l_user/.local/share/desktop-directories"
-q3l_menu_dir="/home/$q3l_user/.config/menus"
+q3l_dir_dir="$q3l_userhome/.local/share/desktop-directories"
+q3l_menu_dir="$q3l_userhome/.config/menus"
 q3l_app_dir="/usr/share/applications"
-q3l_local_app_dir="/home/$q3l_user/.local/share/applications"
+q3l_local_app_dir="$q3l_userhome/.local/share/applications"
 q3l_bin_dir="/usr/local/bin"
 q3l_img_dir="/usr/share/pixmaps"
 q3l_systemd_dir="/lib/systemd/system"

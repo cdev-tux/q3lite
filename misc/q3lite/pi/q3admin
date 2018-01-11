@@ -7,9 +7,13 @@
 #
 logged_in_user=$(who | grep -m 1 "." | awk '{print $1}')
 if [ -z "$logged_in_user" ]; then
-	logged_in_user="pi"
+	q3l_user="pi"
+else
+	q3l_user="$logged_in_user"
 fi
-logfile=/home/$logged_in_user/.q3a/baseq3/qconsole.log
+q3l_userhome=$(sudo -u $q3l_user -H -s eval 'echo $HOME')
+logfile=$q3l_userhome/.q3a/baseq3/qconsole.log
+
 # Change the next line to 0 if you don't want to display the logfile terminal, 1 if you do.
 display_logfile=1
 
@@ -42,7 +46,7 @@ tail_logfile () {
 			if [ ! -f "$logfile" ]; then
 				touch $logfile
 				chmod 644 $logfile
-				chown $logged_in_user:$logged_in_user $logfile
+				chown $q3l_user:$q3l_user $logfile
 			fi
 			sudo lxterminal --geometry=100x48 -t "Q3lite Background Server Console - (Read Only, Use Rcon to Enter Commands)" -e tail -f $logfile 2> /dev/null
 		else
