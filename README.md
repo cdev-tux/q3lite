@@ -104,6 +104,7 @@ Please submit patches as a GitHub pull request.
   * Q3lite is looking to add new lightweight features to help server administrators run their servers, as well as player features to enhance the Q3 experience.
   * The project also needs someone with [OpenGL ES](https://www.khronos.org/opengles) experience to help improve the renderer.
   * See the [Contributing Guide](https://github.com/cdev-tux/q3lite/wiki/Contributing) for details on how you can help.
+  * If you enjoy Q3lite please consider giving the project a star at the top of this page.
 
 
 ### Credits
