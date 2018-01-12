@@ -128,7 +128,7 @@ Please submit patches as a GitHub pull request.
 
 Quake III Arena screenshot copyright © 1999-2000 [id software](http://www.idsoftware.com).  
 Raspberry Pi is a trademark of the [Raspberry Pi Foundation](https://www.raspberrypi.org/).  
-Q3lite copyright © 2016 - 2017 cdev-tux - [github.com/cdev-tux](https://github.com/cdev-tux).  
+Q3lite copyright © 2016 - 2018 cdev-tux - [github.com/cdev-tux](https://github.com/cdev-tux).  
 All other trademarks, logos and copyrights are property of their respective owners.  
 
 ---
