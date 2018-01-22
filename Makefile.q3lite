@@ -335,7 +335,7 @@ q3lite_install: q3lite_makedirs
   ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/lxde-pi-applications.menu),)
 	$(INSTALL) -m 0644 -o root -g root -p $(Q3LITE_SRC_PLATFORM)/lxde-pi-applications.menu $(Q3LITE_MENU_DIR)/lxde-pi-applications.menu
   else
-	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/q3lite.directory not found, unable to install."
+	@echo "***Source file $(Q3LITE_SRC_PLATFORM)/lxde-pi-applications.menu not found, unable to install."
   endif
   # Install q3lite_ded.service systemd service file.
   ifneq ($(wildcard $(Q3LITE_SRC_PLATFORM)/q3lite_ded.service),)
