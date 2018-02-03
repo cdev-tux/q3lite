@@ -34,8 +34,13 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define __QGL_H__
 
 #ifdef HAVE_GLES
-#include <SDL_opengles.h>
-#include <EGL/egl.h>
+#ifdef USE_LOCAL_HEADERS
+#	include "SDL_opengles.h"
+#	include "EGL/egl.h"
+#else
+#	include <SDL_opengles.h>
+#	include <EGL/egl.h>
+#endif
 #ifndef APIENTRYP
 #define APIENTRYP APIENTRY *
 #endif

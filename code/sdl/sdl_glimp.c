@@ -43,7 +43,11 @@ Suite 120, Rockville, Maryland 20850 USA.
 #include "sdl_icon.h"
 
 #ifdef HAVE_GLES
-#include "EGL/egl.h"
+#ifdef USE_LOCAL_HEADERS
+#	include "EGL/egl.h"
+#else
+#	include <EGL/egl.h>
+#endif
 void myglMultiTexCoord2f( GLenum texture, GLfloat s, GLfloat t )
 {
 	glMultiTexCoord4f(texture, s, t, 0, 1);
