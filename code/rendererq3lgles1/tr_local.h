@@ -41,17 +41,15 @@ Suite 120, Rockville, Maryland 20850 USA.
 
 #ifdef HAVE_GLES
 #ifdef USE_LOCAL_HEADERS
- #	include "GLES/glext.h"
- #else
- #	include <GLES/glext.h>
- #endif
+#	include "GLES/glext.h"
+#else
+#	include <GLES/glext.h>
+#endif
 #define GL_RGBA4				0x8056
 #define GL_RGB5					0x8050
 #define GL_INDEX_TYPE		GL_UNSIGNED_SHORT
 typedef unsigned short glIndex_t;
-
 #else
-
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
 #endif

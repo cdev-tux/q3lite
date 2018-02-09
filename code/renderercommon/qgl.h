@@ -67,10 +67,6 @@ extern void myglMultiTexCoord2f( GLenum texture, GLfloat s, GLfloat t );
 #define GL_TEXTURE1_ARB	GL_TEXTURE1
 #define GL_TEXTURE2_ARB	GL_TEXTURE2
 #define GL_TEXTURE3_ARB	GL_TEXTURE3
-#define GL_TEXTURE4_ARB	GL_TEXTURE4
-#define GL_TEXTURE5_ARB	GL_TEXTURE5
-#define GL_TEXTURE6_ARB	GL_TEXTURE6
-#define GL_TEXTURE7_ARB	GL_TEXTURE7
 #endif
 
 //===========================================================================

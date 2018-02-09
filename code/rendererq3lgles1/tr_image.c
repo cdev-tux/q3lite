@@ -592,27 +592,28 @@ byte *  gles_convertRGBA4(byte * data, int width, int height)
     unsigned short* output = (unsigned short*)(temp);
     for (i = 0; i < width*height; i++) {
         unsigned int pixel = input[i];
+
         // Unpack the source data as 8 bit values
         unsigned int r = pixel & 0xff;
         unsigned int g = (pixel >> 8) & 0xff;
         unsigned int b = (pixel >> 16) & 0xff;
         unsigned int a = (pixel >> 24) & 0xff;
+
         // Convert to 4 bit vales
         r >>= 4; g >>= 4; b >>= 4; a >>= 4;
         output[i] = r << 12 | g << 8 | b << 4 | a;
 	}
+
 	return temp;
 }
 byte * gles_convertRGB5(byte * data, int width, int height)
 {
 	byte * temp = (byte *) ri.Malloc (width*height*2);
-//	byte *src = data;
-//	byte *dst = temp;
-//	byte r,g,b;
 	int i;
 	
     unsigned int * input = ( unsigned int *)(data);
     unsigned short* output = (unsigned short*)(temp);
+
     for (i = 0; i < width*height; i++) {
         unsigned int pixel = input[i];
         // Unpack the source data as 8 bit values
@@ -628,38 +629,38 @@ byte * gles_convertRGB5(byte * data, int width, int height)
 byte * gles_convertLuminance(byte * data, int width, int height)
 {
 	byte * temp = (byte *) ri.Malloc (width*height);
-//	byte *src = data;
-//	byte *dst = temp;
-//	byte r,g,b;
 	int i;
 	
     unsigned int * input = ( unsigned int *)(data);
     byte* output = (byte*)(temp);
+
     for (i = 0; i < width*height; i++) {
         unsigned int pixel = input[i];
+
         // Unpack the source data as 8 bit values
         unsigned int r = pixel & 0xff;
         output[i] = r;
 	}
+
 	return temp;
 }
 byte * gles_convertLuminanceAlpha(byte * data, int width, int height)
 {
 	byte * temp = (byte *) ri.Malloc (width*height*2);
-//	byte *src = data;
-//	byte *dst = temp;
-//	byte r,g,b;
 	int i;
 	
     unsigned int * input = ( unsigned int *)(data);
     unsigned short* output = (unsigned short*)(temp);
+
     for (i = 0; i < width*height; i++) {
         unsigned int pixel = input[i];
+
         // Unpack the source data as 8 bit values
         unsigned int r = pixel & 0xff;
         unsigned int a = (pixel >> 24) & 0xff;
         output[i] = r | a<<8;
 	}
+
 	return temp;
 }
 #endif
@@ -875,7 +876,6 @@ static void Upload32( unsigned *data,
 
 	// copy or resample data as appropriate for first MIP level
 #ifdef HAVE_GLES
-		//*pformat = GL_RGBA;
 		if ( ( scaled_width == width ) && 
 			( scaled_height == height ) ) {
 			Com_Memcpy (scaledBuffer, data, width*height*4);

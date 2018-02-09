@@ -90,8 +90,8 @@ void GLimp_Shutdown( void )
 	ri.IN_Shutdown();
 
 	SDL_QuitSubSystem( SDL_INIT_VIDEO );
-	SDL_DestroyWindow( SDL_window );
-	SDL_window = NULL;
+//	SDL_DestroyWindow( SDL_window );
+//	SDL_window = NULL;
 }
 
 /*
@@ -240,9 +240,7 @@ GLimp_SetMode
 static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qboolean coreContext)
 {
 	const char *glstring;
-#ifndef HAVE_GLES
 	int perChannelColorBits;
-#endif
 	int samples;
 	int colorBits, depthBits, stencilBits;
 	int i = 0;
@@ -430,7 +428,6 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 				testStencilBits = 0;
 		}
 
-#ifndef HAVE_GLES
 		if (testColorBits == 24)
 			perChannelColorBits = 8;
 		else
@@ -442,6 +439,12 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 
 		/* Need alpha or else SGIs choose 36+ bit RGB mode */
 		SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 1);
+#endif
+
+#ifdef HAVE_GLES
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 1 );
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
 #endif
 
 		SDL_GL_SetAttribute( SDL_GL_RED_SIZE, perChannelColorBits );
@@ -466,14 +469,21 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 		
 		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
-#if 0 // if multisampling is enabled on X11, this causes create window to fail.
+
 		// If not allowing software GL, demand accelerated
 		if( !r_allowSoftwareGL->integer )
+		{
+			int value;
+
 			SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
-#endif
+
+			//Fall back to allow either if setting attribute failed
+			if( SDL_GL_GetAttribute( SDL_GL_ACCELERATED_VISUAL, &value ) != 1 )
+				SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, -1 );
+		}
 
 		if( ( SDL_window = SDL_CreateWindow( CLIENT_WINDOW_TITLE, x, y,
-				glConfig.vidWidth, glConfig.vidHeight, flags ) ) == NULL )
+					glConfig.vidWidth, glConfig.vidHeight, flags ) ) == NULL )
 		{
 			ri.Printf( PRINT_DEVELOPER, "SDL_CreateWindow failed: %s\n", SDL_GetError( ) );
 			continue;
@@ -501,18 +511,6 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 				continue;
 			}
 		}
-#else
-		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, samples ? 1 : 0 );
-		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, samples );
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
-
-		if( ( SDL_window = SDL_CreateWindow( CLIENT_WINDOW_TITLE, x, y,
-			glConfig.vidWidth, glConfig.vidHeight, flags ) ) == 0 )
-		{
-			ri.Printf( PRINT_DEVELOPER, "SDL_CreateWindow failed: %s\n", SDL_GetError( ) );
-			continue;
-		}
-#endif //HAVE_GLES
 
 		SDL_SetWindowIcon( SDL_window, icon );
 
@@ -843,7 +841,11 @@ static void GLimp_InitExtensions( void )
 	}
 }
 
+#ifdef HAVE_GLES
 #define R_MODE_FALLBACK -2 // Desktop resolution
+#else
+#define R_MODE_FALLBACK 3 // 640 * 480
+#endif
 
 /*
 ===============
@@ -865,7 +867,11 @@ void GLimp_Init( qboolean coreContext)
 	if( ri.Cvar_VariableIntegerValue( "com_abnormalExit" ) )
 	{
 		ri.Cvar_Set( "r_mode", va( "%d", R_MODE_FALLBACK ) );
+#ifdef HAVE_GLES
 		ri.Cvar_Set( "r_fullscreen", "1" );
+#else
+		ri.Cvar_Set( "r_fullscreen", "0" );
+#endif
 		ri.Cvar_Set( "r_centerWindow", "0" );
 		ri.Cvar_Set( "com_abnormalExit", "0" );
 	}

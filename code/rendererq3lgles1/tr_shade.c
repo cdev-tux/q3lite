@@ -70,10 +70,12 @@ R_DrawStripElements
 #define MAX_INDEX 4096
 glIndex_t sindexes[MAX_INDEX];
 int	  num_sindexed;
+
 void  AddIndexe(GLint idx) {
 	sindexes[num_sindexed++]=idx;
 }
 #endif
+
 #ifndef HAVE_GLES
 static int		c_vertexes;		// for seeing how long our average strips are
 static int		c_begins;
@@ -183,7 +185,14 @@ without compiled vertex arrays.
 ==================
 */
 static void R_DrawElements( int numIndexes, const glIndex_t *indexes ) {
-	int		primitives;
+#ifdef HAVE_GLES
+	qglDrawElements( GL_TRIANGLES,
+						numIndexes,
+						GL_INDEX_TYPE,
+						indexes );
+		return;
+#else
+	int primitives;
 
 	primitives = r_primitives->integer;
 
@@ -197,15 +206,12 @@ static void R_DrawElements( int numIndexes, const glIndex_t *indexes ) {
 	}
 
 
-#ifndef HAVE_GLES
 	if ( primitives == 2 ) {
-#endif
-		qglDrawElements( GL_TRIANGLES, 
-						numIndexes,
-						GL_INDEX_TYPE,
-						indexes );
+		qglDrawElements( GL_TRIANGLES,
+						 numIndexes,
+						 GL_INDEX_TYPE,
+						 indexes );
 		return;
-#ifndef HAVE_GLES
 	}
 
 	if ( primitives == 1 ) {

@@ -1079,7 +1079,7 @@ void RB_ShowImages( void ) {
 			qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
 #else
 		GL_Bind( image );
-		qglBegin (GL_QUADS);
+		qglBegin( GL_QUADS );
 		qglTexCoord2f( 0, 0 );
 		qglVertex2f( x, y );
 		qglTexCoord2f( 1, 0 );

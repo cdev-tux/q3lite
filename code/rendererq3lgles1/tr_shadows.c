@@ -259,11 +259,7 @@ void RB_ShadowTessEnd( void ) {
 	GL_Cull( CT_BACK_SIDED );
 	qglStencilOp( GL_KEEP, GL_KEEP, GL_INCR );
 
-#ifdef HAVE_GLES
-	qglDrawElements(GL_TRIANGLES, idx, GL_UNSIGNED_SHORT, indexes);
-#else
 	R_RenderShadowEdges();
-#endif
 
 	GL_Cull( CT_FRONT_SIDED );
 	qglStencilOp( GL_KEEP, GL_KEEP, GL_DECR );

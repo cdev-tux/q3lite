@@ -973,6 +973,10 @@ void GfxInfo_f( void )
 
 	// rendering primitives
 	{
+#ifdef HAVE_GLES
+		ri.Printf( PRINT_ALL, "rendering primitives: " );
+		ri.Printf( PRINT_ALL, "single glDrawElements\n" );
+#else
 		int		primitives;
 
 		// default is to use triangles if compiled vertex arrays are present
@@ -994,6 +998,7 @@ void GfxInfo_f( void )
 		} else if ( primitives == 3 ) {
 			ri.Printf( PRINT_ALL, "multiple glColor4ubv + glTexCoord2fv + glVertex3fv\n" );
 		}
+#endif
 	}
 
 	ri.Printf( PRINT_ALL, "texturemode: %s\n", r_textureMode->string );
@@ -1057,8 +1062,13 @@ void R_Register( void )
 	ri.Cvar_CheckRange( r_ext_multisample, 0, 4, qtrue );
 	r_overBrightBits = ri.Cvar_Get ("r_overBrightBits", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_ignorehwgamma = ri.Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE | CVAR_LATCH);
+#ifdef HAVE_GLES
 	r_mode = ri.Cvar_Get( "r_mode", "-2", CVAR_ARCHIVE | CVAR_LATCH );
-	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE );
+	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH );
+#else
+	r_mode = ri.Cvar_Get( "r_mode", "3", CVAR_ARCHIVE | CVAR_LATCH );
+	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "0", CVAR_ARCHIVE | CVAR_LATCH );
+#endif
 	r_noborder = ri.Cvar_Get("r_noborder", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_customwidth = ri.Cvar_Get( "r_customwidth", "1600", CVAR_ARCHIVE | CVAR_LATCH );
 	r_customheight = ri.Cvar_Get( "r_customheight", "1024", CVAR_ARCHIVE | CVAR_LATCH );
@@ -1109,7 +1119,11 @@ void R_Register( void )
 	r_railCoreWidth = ri.Cvar_Get( "r_railCoreWidth", "6", CVAR_ARCHIVE );
 	r_railSegmentLength = ri.Cvar_Get( "r_railSegmentLength", "32", CVAR_ARCHIVE );
 
+#ifdef HAVE_GLES
+	r_primitives = ri.Cvar_Get( "r_primitives", "2", CVAR_ARCHIVE );
+#else
 	r_primitives = ri.Cvar_Get( "r_primitives", "0", CVAR_ARCHIVE );
+#endif
 
 	r_ambientScale = ri.Cvar_Get( "r_ambientScale", "0.6", CVAR_CHEAT );
 	r_directedScale = ri.Cvar_Get( "r_directedScale", "1", CVAR_CHEAT );
