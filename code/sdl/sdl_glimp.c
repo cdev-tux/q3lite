@@ -90,8 +90,8 @@ void GLimp_Shutdown( void )
 	ri.IN_Shutdown();
 
 	SDL_QuitSubSystem( SDL_INIT_VIDEO );
-//	SDL_DestroyWindow( SDL_window );
-//	SDL_window = NULL;
+	SDL_DestroyWindow( SDL_window );
+	SDL_window = NULL;
 }
 
 /*
@@ -483,7 +483,7 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 		}
 
 		if( ( SDL_window = SDL_CreateWindow( CLIENT_WINDOW_TITLE, x, y,
-					glConfig.vidWidth, glConfig.vidHeight, flags ) ) == NULL )
+			glConfig.vidWidth, glConfig.vidHeight, flags ) ) == NULL )
 		{
 			ri.Printf( PRINT_DEVELOPER, "SDL_CreateWindow failed: %s\n", SDL_GetError( ) );
 			continue;
