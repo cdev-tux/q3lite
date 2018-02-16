@@ -500,7 +500,11 @@ void RB_BeginDrawingView (void) {
 		plane2[3] = DotProduct (plane, backEnd.viewParms.or.origin) - plane[3];
 
 		qglLoadMatrixf( s_flipMatrix );
+#ifdef HAVE_GLES
+		qglClipPlanef(GL_CLIP_PLANE0, plane2);
+#else
 		qglClipPlane (GL_CLIP_PLANE0, plane2);
+#endif
 		qglEnable (GL_CLIP_PLANE0);
 	} else {
 		qglDisable (GL_CLIP_PLANE0);
@@ -644,7 +648,11 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 					}
 
 					if(!oldDepthRange)
+#ifdef HAVE_GLES
+						qglDepthRangef( 0.0f, 0.3f );
+#else
 						qglDepthRange (0, 0.3);
+#endif
 				}
 				else
 				{
@@ -655,7 +663,11 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 						qglMatrixMode(GL_MODELVIEW);
 					}
 
+#ifdef HAVE_GLES
+					qglDepthRangef( 0.0f, 1.0f );
+#else
 					qglDepthRange (0, 1);
+#endif
 				}
 
 				oldDepthRange = depthRange;
@@ -679,7 +691,11 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	// go back to the world modelview matrix
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
 	if ( depthRange ) {
+#ifdef HAVE_GLES
+		qglDepthRangef( 0.0f, 1.0f );
+#else
 		qglDepthRange (0, 1);
+#endif
 	}
 
 	if (r_drawSun->integer) {
@@ -716,7 +732,11 @@ void	RB_SetGL2D (void) {
 	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 	qglMatrixMode(GL_PROJECTION);
     qglLoadIdentity ();
+#ifdef HAVE_GLES
+	qglOrthof(0.0f, glConfig.vidWidth, glConfig.vidHeight, 0.0f, 0.0f, 1.0f);
+#else
 	qglOrtho (0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1);
+#endif
 	qglMatrixMode(GL_MODELVIEW);
     qglLoadIdentity ();
 
@@ -802,7 +822,11 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 
 	RB_SetGL2D();
 
+#ifdef HAVE_GLES
+	qglColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1.0f );
+#else
 	qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
+#endif
 
 #ifdef HAVE_GLES
 	GLfloat tex[] = {

@@ -333,7 +333,11 @@ static void RB_SurfaceBeam( void )
 
 	GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
 
+#ifdef HAVE_GLES
+	qglColor4f( 1.0f, 0.0f, 0.0f, 1.0f );
+#else
 	qglColor3f( 1, 0, 0 );
+#endif
 
 #ifdef HAVE_GLES
 	GLboolean text = qglIsEnabled(GL_TEXTURE_COORD_ARRAY);

@@ -295,8 +295,6 @@ static qboolean GLimp_GetProcAddresses( void ) {
 		// OpenGL ES 1.1 (2.0 is not backward compatible)
 		QGL_1_1_PROCS;
 		QGL_ES_1_1_PROCS;
-		// error so this doesn't segfault due to NULL desktop GL functions being used
-		Com_Error( ERR_FATAL, "Unsupported OpenGL Version: %s\n", version );
 	} else {
 		Com_Error( ERR_FATAL, "Unsupported OpenGL Version: %s\n", version );
 	}

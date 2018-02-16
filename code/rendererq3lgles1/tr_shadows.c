@@ -237,7 +237,11 @@ void RB_ShadowTessEnd( void ) {
 
 	GL_Bind( tr.whiteImage );
 	GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO );
+#ifdef HAVE_GLES
+	qglColor4f( 0.2f, 0.2f, 0.2f, 1.0f );
+#else
 	qglColor3f( 0.2f, 0.2f, 0.2f );
+#endif
 
 	// don't write to the color buffer
 	qglGetBooleanv(GL_COLOR_WRITEMASK, rgba);
@@ -309,7 +313,11 @@ void RB_ShadowFinish( void ) {
 
     qglLoadIdentity ();
 
+#ifdef HAVE_GLES
+	qglColor4f( 0.6f, 0.6f, 0.6f, 1.0f );
+#else
 	qglColor3f( 0.6f, 0.6f, 0.6f );
+#endif
 	GL_State( GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO );
 
 //	qglColor3f( 1, 0, 0 );

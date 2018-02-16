@@ -533,9 +533,15 @@ void RB_RenderFlares (void) {
 	qglMatrixMode( GL_PROJECTION );
 	qglPushMatrix();
     qglLoadIdentity();
+#ifdef HAVE_GLES
+	qglOrthof( backEnd.viewParms.viewportX, backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth,
+			  backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight,
+			  -99999.0f, 99999.0f );
+#else
 	qglOrtho( backEnd.viewParms.viewportX, backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth,
 			  backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight,
 			  -99999, 99999 );
+#endif
 
 	for ( f = r_activeFlares ; f ; f = f->next ) {
 		if ( f->frameSceneNum == backEnd.viewParms.frameSceneNum

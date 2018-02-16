@@ -765,7 +765,11 @@ void RB_DrawSun( float scale, shader_t *shader ) {
 	VectorScale( vec2, size, vec2 );
 
 	// farthest depth range
+#ifdef HAVE_GLES
+	qglDepthRangef( 1.0f, 1.0f );
+#else
 	qglDepthRange( 1.0, 1.0 );
+#endif
 
 	RB_BeginSurface( shader, 0 );
 
@@ -774,7 +778,11 @@ void RB_DrawSun( float scale, shader_t *shader ) {
 	RB_EndSurface();
 
 	// back to normal depth range
+#ifdef HAVE_GLES
+	qglDepthRangef( 0.0f, 1.0f );
+#else
 	qglDepthRange( 0.0, 1.0 );
+#endif
 }
 
 
@@ -802,15 +810,27 @@ void RB_StageIteratorSky( void ) {
 	// r_showsky will let all the sky blocks be drawn in
 	// front of everything to allow developers to see how
 	// much sky is getting sucked in
+#ifdef HAVE_GLES
+	if ( r_showsky->integer ) {
+		qglDepthRangef( 0.0f, 0.0f );
+	} else {
+		qglDepthRangef( 1.0f, 1.0f );
+	}
+#else
 	if ( r_showsky->integer ) {
 		qglDepthRange( 0.0, 0.0 );
 	} else {
 		qglDepthRange( 1.0, 1.0 );
 	}
+#endif
 
 	// draw the outer skybox
 	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage ) {
+#ifdef HAVE_GLES
+		qglColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1.0f );
+#else
 		qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
+#endif
 		
 		qglPushMatrix ();
 		GL_State( 0 );
@@ -832,7 +852,11 @@ void RB_StageIteratorSky( void ) {
 
 
 	// back to normal depth range
+#ifdef HAVE_GLES
+	qglDepthRangef( 0.0f, 1.0f );
+#else
 	qglDepthRange( 0.0, 1.0 );
+#endif
 
 	// note that sky was drawn so we will draw a sun later
 	backEnd.skyRenderedThisView = qtrue;

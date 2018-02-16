@@ -287,10 +287,18 @@ Draws triangle outlines for debugging
 */
 static void DrawTris (shaderCommands_t *input) {
 	GL_Bind( tr.whiteImage );
-	qglColor3f (1,1,1);
+#ifdef HAVE_GLES
+	qglColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+#else
+	qglColor3f( 1, 1, 1 );
+#endif
 
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
+#ifdef HAVE_GLES
+	qglDepthRangef( 0.0f, 0.0f );
+#else
 	qglDepthRange( 0, 0 );
+#endif
 
 	qglDisableClientState (GL_COLOR_ARRAY);
 	qglDisableClientState (GL_TEXTURE_COORD_ARRAY);
@@ -315,7 +323,11 @@ static void DrawTris (shaderCommands_t *input) {
 		qglUnlockArraysEXT();
 		GLimp_LogComment( "glUnlockArraysEXT\n" );
 	}
+#ifdef HAVE_GLES
+	qglDepthRangef( 0.0f, 1.0f );
+#else
 	qglDepthRange( 0, 1 );
+#endif
 }
 
 
@@ -331,8 +343,13 @@ static void DrawNormals (shaderCommands_t *input) {
 	vec3_t	temp;
 
 	GL_Bind( tr.whiteImage );
-	qglColor3f (1,1,1);
+#ifdef HAVE_GLES
+	qglColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+	qglDepthRangef( 0.0f, 0.0f );	// never occluded
+#else
+	qglColor3f( 1, 1, 1 );
 	qglDepthRange( 0, 0 );	// never occluded
+#endif
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
 
 #ifdef HAVE_GLES
@@ -357,11 +374,11 @@ static void DrawNormals (shaderCommands_t *input) {
 	}
 #ifdef HAVE_GLES
 	//*TODO* restaure state for texture & color
+	qglDepthRangef( 0.0f, 1.0f );
 #else
 	qglEnd ();
-#endif
-
 	qglDepthRange( 0, 1 );
+#endif
 }
 
 /*
@@ -1449,7 +1466,11 @@ void RB_StageIteratorLightmappedMultitexture( void ) {
 
 #ifdef REPLACE_MODE
 	qglDisableClientState( GL_COLOR_ARRAY );
+#ifdef HAVE_GLES
+	qglColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+#else
 	qglColor3f( 1, 1, 1 );
+#endif
 	qglShadeModel( GL_FLAT );
 #else
 	qglEnableClientState( GL_COLOR_ARRAY );
