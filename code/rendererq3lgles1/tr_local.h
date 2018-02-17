@@ -41,9 +41,9 @@ Suite 120, Rockville, Maryland 20850 USA.
 
 #ifdef HAVE_GLES
 #ifdef USE_LOCAL_HEADERS
-#	include "GLES/glext.h"
+#	include "SDL_opengles.h"
 #else
-#	include <GLES/glext.h>
+#	include <SDL_opengles.h>
 #endif
 #define GL_RGBA4				0x8056
 #define GL_RGB5					0x8050
