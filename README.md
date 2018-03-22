@@ -8,7 +8,7 @@
   * Raspberry Pi Zero, Zero W
   * Raspberry Pi 1 Model A+, B, B+ w/512 MB Memory
   * Raspberry Pi 2
-  * Raspberry Pi 3
+  * Raspberry Pi 3, 3B+
   * Pi platforms are supported on Raspbian Desktop and Raspbian Lite
 
 
@@ -25,7 +25,7 @@
   **Note:** You'll still need to copy the pak0.pk3 file from your full version of Quake III Arena to play the game. See section 1.1 of the [Q3lite FAQ](https://github.com/cdev-tux/q3lite/wiki/Q3lite-FAQ) for details.
   * Uninstaller included for removing installation if desired.
   * Includes all files and step by step instructions to run a dedicated server from the applications menu or as a systemd service at boot time.
-  * Timedemo four runs at ~140 fps on a Pi 3 at 720P (without overclocking).
+  * Timedemo four runs at ~150 fps on a Pi 3 B+ at 720P (without overclocking).
   * Also includes a desktop Remote Console (rcon) application to send console commands to the background server.
 
 ### New Q3lite cvars
@@ -79,6 +79,10 @@ Server cvars:
   * [Q3lite wiki](https://github.com/cdev-tux/q3lite/wiki)
   * [Compiling and Installation Guide](https://github.com/cdev-tux/q3lite/wiki/Compiling-Install-Guide)
   * [Q3lite FAQ](https://github.com/cdev-tux/q3lite/wiki/Q3lite-FAQ)
+
+### Q3lite on the Web
+
+  * [Q3lite - Raspberry Pi Forums](https://www.raspberrypi.org/forums/viewtopic.php?f=78&t=198680)
 
 ### Git branches
 

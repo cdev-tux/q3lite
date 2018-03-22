@@ -253,10 +253,10 @@ if [ -w $q3l_compile_path ]; then
 	if grep -i -q "^model name\s*:\s*ARMv" /proc/cpuinfo; then
 		while true
 		do
-			# Check if we're running on a Pi 3.
-			if grep -i -q "^Revision\s*:\s*[ 123][0-9a-f][0-9a-f][0-9a-f]08[0-9a-f]$" /proc/cpuinfo; then
+			# Check if we're running on a Pi 3 or 3B+.
+			if grep -i -q "^Revision\s*:\s*[ 123]a[0-9a-f]20[0-9a-f][0-9a-f]$" /proc/cpuinfo; then
 				if [ -z "$1" ]; then
-					echo -e "\e[01;37mCompiling Q3lite on a Pi 3\n\e[0m"
+					echo -e "\e[01;37mCompiling Q3lite on a Pi 3 or 3B+\n\e[0m"
 				fi
 				ptype="raspberrypi3"
 				cores="4"
