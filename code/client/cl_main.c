@@ -3748,6 +3748,17 @@ void CL_Init( void ) {
 	Cvar_Get( "cl_guid", "", CVAR_USERINFO | CVAR_ROM );
 	CL_UpdateGUID( NULL, 0 );
 
+	// Display SDL compiled/linked version numbers.
+	SDL_version compiled;
+	SDL_version linked;
+
+	SDL_VERSION( &compiled );
+	SDL_GetVersion( &linked );
+	Com_Printf( "Compiled with SDL v%d.%d.%d\n",
+		compiled.major, compiled.minor, compiled.patch );
+	Com_Printf( "Linking against SDL v%d.%d.%d\n",
+		linked.major, linked.minor, linked.patch );
+
 	Com_Printf( "----- Client Initialization Complete -----\n" );
 }
 
