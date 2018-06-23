@@ -321,7 +321,6 @@ if [ -w $q3l_compile_path ]; then
 		SERVERBIN=q3ded \
 		CLIENTBIN=quake3 \
 		BUILD_RENDERER_OPENGL2=0 \
-		USE_RENDERER_DLOPEN=0 \
 		USE_OPENAL=0 \
 		USE_OPENAL_DLOPEN=0 \
 		USE_CURL=0 \

@@ -33,23 +33,18 @@ Suite 120, Rockville, Maryland 20850 USA.
 #ifndef __QGL_H__
 #define __QGL_H__
 
-#ifdef HAVE_GLES
 #ifdef USE_LOCAL_HEADERS
+#	include "SDL_opengl.h"
 #	include "SDL_opengles.h"
 #	include "SDL_egl.h"
 #else
+#	include <SDL_opengl.h>
 #	include <SDL_opengles.h>
 #	include <SDL_egl.h>
 #endif
+
 #ifndef APIENTRYP
 #define APIENTRYP APIENTRY *
-#endif
-#else
-#ifdef USE_LOCAL_HEADERS
-#	include "SDL_opengl.h"
-#else
-#	include <SDL_opengl.h>
-#endif
 #endif
 
 extern void (APIENTRYP qglActiveTextureARB) (GLenum texture);
@@ -59,17 +54,7 @@ extern void (APIENTRYP qglMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat
 extern void (APIENTRYP qglLockArraysEXT) (GLint first, GLsizei count);
 extern void (APIENTRYP qglUnlockArraysEXT) (void);
 
-#ifdef HAVE_GLES
-// GLES Conversions
-#define GLdouble	GLfloat
-#define GLclampd	GLclampf
-#define GL_CLAMP	GL_CLAMP_TO_EDGE
-#define GL_TEXTURE0_ARB	GL_TEXTURE0
-#define GL_TEXTURE1_ARB	GL_TEXTURE1
-#define GL_TEXTURE2_ARB	GL_TEXTURE2
-#define GL_TEXTURE3_ARB	GL_TEXTURE3
 extern void myglMultiTexCoord2f( GLenum texture, GLfloat s, GLfloat t );
-#endif
 
 //===========================================================================
 

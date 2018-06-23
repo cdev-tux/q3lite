@@ -322,16 +322,7 @@ void GL_State( unsigned long stateBits )
 	//
 	if ( diff & GLS_POLYMODE_LINE )
 	{
-#ifndef HAVE_GLES
-		if ( stateBits & GLS_POLYMODE_LINE )
-		{
-			qglPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-		}
-		else
-		{
-			qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-		}
-#endif	
+
 	}
 
 	//
@@ -483,11 +474,7 @@ void RB_BeginDrawingView (void) {
 	// clip to the plane of the portal
 	if ( backEnd.viewParms.isPortal ) {
 		float	plane[4];
-#ifdef HAVE_GLES
 		float	plane2[4];
-#else
-		GLdouble	plane2[4];
-#endif
 
 		plane[0] = backEnd.viewParms.portalPlane.normal[0];
 		plane[1] = backEnd.viewParms.portalPlane.normal[1];
@@ -500,11 +487,7 @@ void RB_BeginDrawingView (void) {
 		plane2[3] = DotProduct (plane, backEnd.viewParms.or.origin) - plane[3];
 
 		qglLoadMatrixf( s_flipMatrix );
-#ifdef HAVE_GLES
 		qglClipPlanef(GL_CLIP_PLANE0, plane2);
-#else
-		qglClipPlane (GL_CLIP_PLANE0, plane2);
-#endif
 		qglEnable (GL_CLIP_PLANE0);
 	} else {
 		qglDisable (GL_CLIP_PLANE0);
@@ -648,11 +631,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 					}
 
 					if(!oldDepthRange)
-#ifdef HAVE_GLES
 						qglDepthRangef( 0.0f, 0.3f );
-#else
-						qglDepthRange (0, 0.3);
-#endif
 				}
 				else
 				{
@@ -663,11 +642,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 						qglMatrixMode(GL_MODELVIEW);
 					}
 
-#ifdef HAVE_GLES
 					qglDepthRangef( 0.0f, 1.0f );
-#else
-					qglDepthRange (0, 1);
-#endif
 				}
 
 				oldDepthRange = depthRange;
@@ -691,11 +666,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	// go back to the world modelview matrix
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
 	if ( depthRange ) {
-#ifdef HAVE_GLES
 		qglDepthRangef( 0.0f, 1.0f );
-#else
-		qglDepthRange (0, 1);
-#endif
 	}
 
 	if (r_drawSun->integer) {
@@ -732,11 +703,7 @@ void	RB_SetGL2D (void) {
 	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 	qglMatrixMode(GL_PROJECTION);
     qglLoadIdentity ();
-#ifdef HAVE_GLES
 	qglOrthof(0.0f, glConfig.vidWidth, glConfig.vidHeight, 0.0f, 0.0f, 1.0f);
-#else
-	qglOrtho (0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1);
-#endif
 	qglMatrixMode(GL_MODELVIEW);
     qglLoadIdentity ();
 
@@ -798,11 +765,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 	if ( cols != tr.scratchImage[client]->width || rows != tr.scratchImage[client]->height ) {
 		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
 		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
-#ifdef HAVE_GLES
 		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-#else
-		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-#endif
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
@@ -822,13 +785,8 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 
 	RB_SetGL2D();
 
-#ifdef HAVE_GLES
 	qglColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1.0f );
-#else
-	qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
-#endif
 
-#ifdef HAVE_GLES
 	GLfloat tex[] = {
 	 0.5f / cols,  0.5f / rows,
 	 ( cols - 0.5f ) / cols ,  0.5f / rows,
@@ -852,18 +810,6 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 		qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	if (glcol)
 		qglEnableClientState(GL_COLOR_ARRAY);
-#else
-	qglBegin (GL_QUADS);
-	qglTexCoord2f ( 0.5f / cols,  0.5f / rows );
-	qglVertex2f (x, y);
-	qglTexCoord2f ( ( cols - 0.5f ) / cols ,  0.5f / rows );
-	qglVertex2f (x+w, y);
-	qglTexCoord2f ( ( cols - 0.5f ) / cols, ( rows - 0.5f ) / rows );
-	qglVertex2f (x+w, y+h);
-	qglTexCoord2f ( 0.5f / cols, ( rows - 0.5f ) / rows );
-	qglVertex2f (x, y+h);
-	qglEnd ();
-#endif
 }
 
 void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty) {
@@ -874,11 +820,7 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 	if ( cols != tr.scratchImage[client]->width || rows != tr.scratchImage[client]->height ) {
 		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
 		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
-#ifdef HAVE_GLES
 		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-#else
-		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-#endif
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
@@ -1024,10 +966,6 @@ const void	*RB_DrawBuffer( const void *data ) {
 
 	cmd = (const drawBufferCommand_t *)data;
 
-#ifndef HAVE_GLES
-	qglDrawBuffer( cmd->buffer );
-#endif
-
 	// clear screen for debugging
 	if ( r_clear->integer ) {
 		qglClearColor( 1, 0, 0.5, 1 );
@@ -1077,7 +1015,6 @@ void RB_ShowImages( void ) {
 			h *= image->uploadHeight / 512.0f;
 		}
 
-#ifdef HAVE_GLES
 		GLfloat tex[] = {
 		 0, 0, 
 		 1, 0,
@@ -1101,19 +1038,6 @@ void RB_ShowImages( void ) {
 			qglEnableClientState(GL_COLOR_ARRAY);
 		if (!text)
 			qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
-#else
-		GL_Bind( image );
-		qglBegin( GL_QUADS );
-		qglTexCoord2f( 0, 0 );
-		qglVertex2f( x, y );
-		qglTexCoord2f( 1, 0 );
-		qglVertex2f( x + w, y );
-		qglTexCoord2f( 1, 1 );
-		qglVertex2f( x + w, y + h );
-		qglTexCoord2f( 0, 1 );
-		qglVertex2f( x, y + h );
-		qglEnd();
-#endif
 	}
 
 	qglFinish();
@@ -1181,25 +1105,6 @@ const void	*RB_SwapBuffers( const void *data ) {
 
 	cmd = (const swapBuffersCommand_t *)data;
 
-	// we measure overdraw by reading back the stencil buffer and
-	// counting up the number of increments that have happened
-#ifndef HAVE_GLES
-	if ( r_measureOverdraw->integer ) {
-		int i;
-		long sum = 0;
-		unsigned char *stencilReadback;
-
-		stencilReadback = ri.Hunk_AllocateTempMemory( glConfig.vidWidth * glConfig.vidHeight );
-		qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencilReadback );
-
-		for ( i = 0; i < glConfig.vidWidth * glConfig.vidHeight; i++ ) {
-			sum += stencilReadback[i];
-		}
-
-		backEnd.pc.c_overDraw += sum;
-		ri.Hunk_FreeTempMemory( stencilReadback );
-	}
-#endif
 
 
 	if ( !glState.finishCalled ) {

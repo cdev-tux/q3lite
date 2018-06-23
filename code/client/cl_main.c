@@ -57,6 +57,7 @@ cvar_t	*cl_voip;
 
 #ifdef USE_RENDERER_DLOPEN
 cvar_t	*cl_renderer;
+cvar_t	*cl_sysvidmode;
 #endif
 
 cvar_t	*cl_nodelta;
@@ -3250,23 +3251,34 @@ void CL_InitRef( void ) {
 	Com_Printf( "----- Initializing Renderer ----\n" );
 
 #ifdef USE_RENDERER_DLOPEN
-	cl_renderer = Cvar_Get("cl_renderer", "opengl2", CVAR_ARCHIVE | CVAR_LATCH);
+	cl_sysvidmode = Cvar_Get("cl_sysvidmode", "opengles1", CVAR_ARCHIVE | CVAR_LATCH);
 
-	Com_sprintf(dllName, sizeof(dllName), "renderer_%s_" ARCH_STRING DLL_EXT, cl_renderer->string);
-
-	if(!(rendererLib = Sys_LoadDll(dllName, qfalse)) && strcmp(cl_renderer->string, cl_renderer->resetString))
+	if( Q_stricmp( cl_sysvidmode->string, "opengles1" ) == 0 )
 	{
-		Com_Printf("failed:\n\"%s\"\n", Sys_LibraryError());
-		Cvar_ForceReset("cl_renderer");
+		Com_sprintf(dllName, sizeof(dllName), "renderer_%s_" ARCH_STRING DLL_EXT, cl_sysvidmode->string);
 
-		Com_sprintf(dllName, sizeof(dllName), "renderer_opengl2_" ARCH_STRING DLL_EXT);
 		rendererLib = Sys_LoadDll(dllName, qfalse);
+	} else {
+		cl_renderer = Cvar_Get("cl_renderer", "opengl1", CVAR_ARCHIVE | CVAR_LATCH);
+
+		Com_sprintf(dllName, sizeof(dllName), "renderer_%s_" ARCH_STRING DLL_EXT, cl_renderer->string);
+
+		if(!(rendererLib = Sys_LoadDll(dllName, qfalse)) && strcmp(cl_renderer->string, cl_renderer->resetString))
+		{
+			Com_Printf("failed:\n\"%s\"\n", Sys_LibraryError());
+			Cvar_ForceReset("cl_renderer");
+
+			Com_sprintf(dllName, sizeof(dllName), "renderer_opengl1_" ARCH_STRING DLL_EXT);
+			rendererLib = Sys_LoadDll(dllName, qfalse);
+		}
 	}
 
 	if(!rendererLib)
 	{
 		Com_Printf("failed:\n\"%s\"\n", Sys_LibraryError());
 		Com_Error(ERR_FATAL, "Failed to load renderer");
+	} else {
+		Com_Printf("Renderer loaded.\n");
 	}
 
 	GetRefAPI = Sys_LoadFunction(rendererLib, "GetRefAPI");

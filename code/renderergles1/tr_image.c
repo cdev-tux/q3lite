@@ -170,103 +170,27 @@ void R_ImageList_f( void ) {
 
 		switch(image->internalFormat)
 		{
-#ifndef HAVE_GLES
-			case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
-				format = "sDXT1";
-				// 64 bits per 16 pixels, so 4 bits per pixel
-				estSize /= 2;
-				break;
-			case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
-				format = "sDXT5";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB:
-				format = "sBPTC";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT:
-				format = "LATC ";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-				format = "DXT1 ";
-				// 64 bits per 16 pixels, so 4 bits per pixel
-				estSize /= 2;
-				break;
-			case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-				format = "DXT5 ";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_COMPRESSED_RGBA_BPTC_UNORM_ARB:
-				format = "BPTC ";
-				// 128 bits per 16 pixels, so 1 byte per pixel
-				break;
-			case GL_RGB4_S3TC:
-				format = "S3TC ";
-				// same as DXT1?
-				estSize /= 2;
-				break;
-#endif
 			case GL_RGBA4:
-#ifndef HAVE_GLES
-			case GL_RGBA8:
-#endif
 			case GL_RGBA:
 				format = "RGBA ";
 				// 4 bytes per pixel
 				estSize *= 4;
 				break;
-#ifndef HAVE_GLES
-			case GL_LUMINANCE8:
-			case GL_LUMINANCE16:
-#endif
 			case GL_LUMINANCE:
 				format = "L    ";
 				// 1 byte per pixel?
 				break;
 			case GL_RGB5:
-#ifndef HAVE_GLES
-			case GL_RGB8:
-#endif
 			case GL_RGB:
 				format = "RGB  ";
 				// 3 bytes per pixel?
 				estSize *= 3;
 				break;
-#ifndef HAVE_GLES
-			case GL_LUMINANCE8_ALPHA8:
-			case GL_LUMINANCE16_ALPHA16:
-#endif
 			case GL_LUMINANCE_ALPHA:
 				format = "LA   ";
 				// 2 bytes per pixel?
 				estSize *= 2;
 				break;
-#ifndef HAVE_GLES
-			case GL_SRGB_EXT:
-			case GL_SRGB8_EXT:
-				format = "sRGB ";
-				// 3 bytes per pixel?
-				estSize *= 3;
-				break;
-			case GL_SRGB_ALPHA_EXT:
-			case GL_SRGB8_ALPHA8_EXT:
-				format = "sRGBA";
-				// 4 bytes per pixel?
-				estSize *= 4;
-				break;
-			case GL_SLUMINANCE_EXT:
-			case GL_SLUMINANCE8_EXT:
-				format = "sL   ";
-				// 1 byte per pixel?
-				break;
-			case GL_SLUMINANCE_ALPHA_EXT:
-			case GL_SLUMINANCE8_ALPHA8_EXT:
-				format = "sLA  ";
-				// 2 byte per pixel?
-				estSize *= 2;
-				break;
-#endif
 		}
 
 		// mipmap adds about 50%
@@ -528,24 +452,6 @@ R_BlendOverTexture
 Apply a color blend over a set of pixels
 ==================
 */
-#ifndef HAVE_GLES
-static void R_BlendOverTexture( byte *data, int pixelCount, byte blend[4] ) {
-	int		i;
-	int		inverseAlpha;
-	int		premult[3];
-
-	inverseAlpha = 255 - blend[3];
-	premult[0] = blend[0] * blend[3];
-	premult[1] = blend[1] * blend[3];
-	premult[2] = blend[2] * blend[3];
-
-	for ( i = 0 ; i < pixelCount ; i++, data+=4 ) {
-		data[0] = ( data[0] * inverseAlpha + premult[0] ) >> 9;
-		data[1] = ( data[1] * inverseAlpha + premult[1] ) >> 9;
-		data[2] = ( data[2] * inverseAlpha + premult[2] ) >> 9;
-	}
-}
-#endif
 
 byte	mipBlendColors[16][4] = {
 	{0,0,0,0},
@@ -566,7 +472,6 @@ byte	mipBlendColors[16][4] = {
 	{0,0,255,128},
 };
 
-#ifdef HAVE_GLES
 // helper function for GLES format conversions
 byte * gles_convertRGB(byte * data, int width, int height)
 {
@@ -663,7 +568,6 @@ byte * gles_convertLuminanceAlpha(byte * data, int width, int height)
 
 	return temp;
 }
-#endif
 
 /*
 ===============
@@ -803,38 +707,14 @@ static void Upload32( unsigned *data,
 		{
 			if(r_greyscale->integer)
 			{
-#ifndef HAVE_GLES
-				if(r_texturebits->integer == 16)
-					internalFormat = GL_LUMINANCE8;
-				else if(r_texturebits->integer == 32)
-					internalFormat = GL_LUMINANCE16;
-				else
-#endif
 					internalFormat = GL_LUMINANCE;
 			}
 			else
 			{
-#ifndef HAVE_GLES
-				if ( allowCompression && glConfig.textureCompression == TC_S3TC_ARB )
-				{
-					internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-				}
-				else if ( allowCompression && glConfig.textureCompression == TC_S3TC )
-				{
-					internalFormat = GL_RGB4_S3TC;
-				}
-				else 
-#endif
 				if ( r_texturebits->integer == 16 )
 				{
 					internalFormat = GL_RGB5;
 				}
-#ifndef HAVE_GLES
-				else if ( r_texturebits->integer == 32 )
-				{
-					internalFormat = GL_RGB8;
-				}
-#endif
 				else
 				{
 					internalFormat = GL_RGB;
@@ -845,14 +725,7 @@ static void Upload32( unsigned *data,
 		{
 			if(r_greyscale->integer)
 			{
-#ifndef HAVE_GLES
-				if(r_texturebits->integer == 16)
-					internalFormat = GL_LUMINANCE8_ALPHA8;
-				else if(r_texturebits->integer == 32)
-					internalFormat = GL_LUMINANCE16_ALPHA16;
-				else
-#endif
-					internalFormat = GL_LUMINANCE_ALPHA;
+				internalFormat = GL_LUMINANCE_ALPHA;
 			}
 			else
 			{
@@ -860,12 +733,6 @@ static void Upload32( unsigned *data,
 				{
 					internalFormat = GL_RGBA4;
 				}
-#ifndef HAVE_GLES
-				else if ( r_texturebits->integer == 32 )
-				{
-					internalFormat = GL_RGBA8;
-				}
-#endif
 				else
 				{
 					internalFormat = GL_RGBA;
@@ -875,7 +742,6 @@ static void Upload32( unsigned *data,
 	}
 
 	// copy or resample data as appropriate for first MIP level
-#ifdef HAVE_GLES
 		if ( ( scaled_width == width ) && 
 			( scaled_height == height ) ) {
 			Com_Memcpy (scaledBuffer, data, width*height*4);
@@ -940,70 +806,6 @@ static void Upload32( unsigned *data,
 		
 	//	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	//	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-#else
-	if ( ( scaled_width == width ) && 
-		( scaled_height == height ) ) {
-		if (!mipmap)
-		{
-			qglTexImage2D (GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			*pUploadWidth = scaled_width;
-			*pUploadHeight = scaled_height;
-			*format = internalFormat;
-
-			goto done;
-		}
-		Com_Memcpy (scaledBuffer, data, width*height*4);
-	}
-	else
-	{
-		// use the normal mip-mapping function to go down from here
-		while ( width > scaled_width || height > scaled_height ) {
-			R_MipMap( (byte *)data, width, height );
-			width >>= 1;
-			height >>= 1;
-			if ( width < 1 ) {
-				width = 1;
-			}
-			if ( height < 1 ) {
-				height = 1;
-			}
-		}
-		Com_Memcpy( scaledBuffer, data, width * height * 4 );
-	}
-
-	R_LightScaleTexture (scaledBuffer, scaled_width, scaled_height, !mipmap );
-
-	*pUploadWidth = scaled_width;
-	*pUploadHeight = scaled_height;
-	*format = internalFormat;
-
-	qglTexImage2D (GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
-
-	if (mipmap)
-	{
-		int		miplevel;
-
-		miplevel = 0;
-		while (scaled_width > 1 || scaled_height > 1)
-		{
-			R_MipMap( (byte *)scaledBuffer, scaled_width, scaled_height );
-			scaled_width >>= 1;
-			scaled_height >>= 1;
-			if (scaled_width < 1)
-				scaled_width = 1;
-			if (scaled_height < 1)
-				scaled_height = 1;
-			miplevel++;
-
-			if ( r_colorMipLevels->integer ) {
-				R_BlendOverTexture( (byte *)scaledBuffer, scaled_width * scaled_height, mipBlendColors[miplevel] );
-			}
-
-			qglTexImage2D (GL_TEXTURE_2D, miplevel, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
-		}
-	}
-done:
-#endif
 
 	if (mipmap)
 	{

@@ -55,6 +55,7 @@ ifneq ($(PLATFORM_TYPE),)
   override COMPILE_ARCH=$(ARCH)
   override RENDERER_LIBS=$(SDL_LIBS)
   override GIT_REV=
+  override USE_RENDERER_DLOPEN=1
 
   ifndef BASEGAME
   BASEGAME=baseq3
@@ -177,6 +178,25 @@ q3lite_install: q3lite_makedirs
 		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/$(CLIENTBIN)$(FULLBINEXT) $(Q3LITE_BASEPATH)/$(CLIENTBIN)$(FULLBINEXT)
     else
 		@echo "***Source file $(BR)/$(CLIENTBIN)$(FULLBINEXT) not found, unable to install."
+    endif
+    ifneq ($(USE_RENDERER_DLOPEN),0)
+      ifneq ($(wildcard $(BR)/renderer_opengles1_$(SHLIBNAME)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/renderer_opengles1_$(SHLIBNAME) $(Q3LITE_BASEPATH)/renderer_opengles1_$(SHLIBNAME)
+      else
+		@echo "***Source file $(BR)/renderer_opengles1_$(SHLIBNAME) not found, unable to install."
+      endif
+      ifneq ($(wildcard $(BR)/renderer_opengl1_$(SHLIBNAME)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/renderer_opengl1_$(SHLIBNAME) $(Q3LITE_BASEPATH)/renderer_opengl1_$(SHLIBNAME)
+      else
+		@echo "***Source file $(BR)/renderer_opengl1_$(SHLIBNAME) not found, unable to install."
+      endif
+      ifneq ($(BUILD_RENDERER_OPENGL2),0)
+        ifneq ($(wildcard $(BR)/renderer_opengl2_$(SHLIBNAME)),)
+		$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(BR)/renderer_opengl2_$(SHLIBNAME) $(Q3LITE_BASEPATH)/renderer_opengl2_$(SHLIBNAME)
+        else
+		@echo "***Source file $(BR)/renderer_opengl2_$(SHLIBNAME) not found, unable to install."
+        endif
+      endif
     endif
   endif
   ifneq ($(BUILD_SERVER),0)
@@ -397,7 +417,7 @@ q3lite_install: q3lite_makedirs
   # If Q3LITE_INSTALL_SDL!=1 then remove the $(Q3LITE_LIB_PATH) folder and files.
   ifeq ($(Q3LITE_INSTALL_SDL),1) 
     ifneq ($(wildcard $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.4.0),)
-	$(INSTALL) -m 0755 -o root -g root -p $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.4.0 $(Q3LITE_LIB_PATH)/libSDL2-2.0.so.0.4.0
+	$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.4.0 $(Q3LITE_LIB_PATH)/libSDL2-2.0.so.0.4.0
     else
 	@echo "***Source file $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.4.0 not found, unable to install."
     endif

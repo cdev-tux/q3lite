@@ -373,7 +373,6 @@ static void DrawSkySide( struct image_s *image, const int mins[2], const int max
 	int s, t;
 
 	GL_Bind( image );
-#ifdef HAVE_GLES
 	GLfloat vtx[3*1024];	// arbitrary sized
 	GLfloat tex[2*1024];
 	int idx;
@@ -384,49 +383,30 @@ static void DrawSkySide( struct image_s *image, const int mins[2], const int max
 		qglDisableClientState(GL_COLOR_ARRAY);
 	if (!text)
 		qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
-#endif
 
 	for ( t = mins[1]+HALF_SKY_SUBDIVISIONS; t < maxs[1]+HALF_SKY_SUBDIVISIONS; t++ )
 	{
-#ifdef HAVE_GLES
 		idx=0;
-#else
-		qglBegin( GL_TRIANGLE_STRIP );
-#endif
 
 		for ( s = mins[0]+HALF_SKY_SUBDIVISIONS; s <= maxs[0]+HALF_SKY_SUBDIVISIONS; s++ )
 		{
-#ifdef HAVE_GLES
 			memcpy(tex+idx*2, s_skyTexCoords[t][s], sizeof(GLfloat)*2);
 			memcpy(vtx+idx*3, s_skyPoints[t][s], sizeof(GLfloat)*3);
 			idx++;
 			memcpy(tex+idx*2, s_skyTexCoords[t+1][s], sizeof(GLfloat)*2);
 			memcpy(vtx+idx*3, s_skyPoints[t+1][s], sizeof(GLfloat)*3);
 			idx++;
-#else
-			qglTexCoord2fv( s_skyTexCoords[t][s] );
-			qglVertex3fv( s_skyPoints[t][s] );
-
-			qglTexCoord2fv( s_skyTexCoords[t+1][s] );
-			qglVertex3fv( s_skyPoints[t+1][s] );
-#endif
 		}
 
-#ifdef HAVE_GLES
 		//*TODO* Try to switch from many DrawArrays of GL_TRIANGLE_STRIP to a single DrawArrays of TRIANGLES to see if it perform better
 		qglVertexPointer (3, GL_FLOAT, 0, vtx);
 		qglTexCoordPointer(2, GL_FLOAT, 0, tex);
 		qglDrawArrays(GL_TRIANGLE_STRIP, 0, idx);
-#else		
-		qglEnd();
-#endif
 	}
-#ifdef HAVE_GLES
 	if (glcol)
 		qglEnableClientState(GL_COLOR_ARRAY);
 	if (!text)
 		qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
-#endif
 }
 
 static void DrawSkyBox( shader_t *shader )
@@ -765,11 +745,7 @@ void RB_DrawSun( float scale, shader_t *shader ) {
 	VectorScale( vec2, size, vec2 );
 
 	// farthest depth range
-#ifdef HAVE_GLES
 	qglDepthRangef( 1.0f, 1.0f );
-#else
-	qglDepthRange( 1.0, 1.0 );
-#endif
 
 	RB_BeginSurface( shader, 0 );
 
@@ -778,11 +754,7 @@ void RB_DrawSun( float scale, shader_t *shader ) {
 	RB_EndSurface();
 
 	// back to normal depth range
-#ifdef HAVE_GLES
 	qglDepthRangef( 0.0f, 1.0f );
-#else
-	qglDepthRange( 0.0, 1.0 );
-#endif
 }
 
 
@@ -810,27 +782,15 @@ void RB_StageIteratorSky( void ) {
 	// r_showsky will let all the sky blocks be drawn in
 	// front of everything to allow developers to see how
 	// much sky is getting sucked in
-#ifdef HAVE_GLES
 	if ( r_showsky->integer ) {
 		qglDepthRangef( 0.0f, 0.0f );
 	} else {
 		qglDepthRangef( 1.0f, 1.0f );
 	}
-#else
-	if ( r_showsky->integer ) {
-		qglDepthRange( 0.0, 0.0 );
-	} else {
-		qglDepthRange( 1.0, 1.0 );
-	}
-#endif
 
 	// draw the outer skybox
 	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage ) {
-#ifdef HAVE_GLES
 		qglColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1.0f );
-#else
-		qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
-#endif
 		
 		qglPushMatrix ();
 		GL_State( 0 );
@@ -852,11 +812,7 @@ void RB_StageIteratorSky( void ) {
 
 
 	// back to normal depth range
-#ifdef HAVE_GLES
 	qglDepthRangef( 0.0f, 1.0f );
-#else
-	qglDepthRange( 0.0, 1.0 );
-#endif
 
 	// note that sky was drawn so we will draw a sun later
 	backEnd.skyRenderedThisView = qtrue;
