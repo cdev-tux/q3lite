@@ -11,6 +11,12 @@ ifeq ($(COMPILE_PLATFORM),sunos)
   COMPILE_ARCH=$(shell uname -p | sed -e 's/i.86/x86/')
 endif
 
+ifeq ($(shell sed -n '/^Hardware/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo),Vero4K)
+  # Standard arch test finds non-specific "aarch64" rather than "Vero4K"
+  PLATFORM_TYPE=vero4k
+  COMPILE_ARCH=vero4k
+endif
+
 ifndef BUILD_STANDALONE
   BUILD_STANDALONE =
 endif
@@ -353,6 +359,9 @@ ifneq (,$(findstring "$(PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu" "gnu")
     HAVE_VM_COMPILED=true
   endif
   ifeq ($(ARCH),armv7l)
+    HAVE_VM_COMPILED=true
+  endif
+  ifeq ($(ARCH),vero4k)
     HAVE_VM_COMPILED=true
   endif
   ifeq ($(ARCH),alpha)
@@ -2129,6 +2138,9 @@ ifeq ($(HAVE_VM_COMPILED),true)
   ifeq ($(ARCH),armv7l)
     Q3OBJ += $(B)/client/vm_armv7l.o
   endif
+  ifeq ($(ARCH),vero4k)
+    Q3OBJ += $(B)/client/vm_armv7l.o
+  endif
 endif
 
 ifdef MINGW
@@ -2310,6 +2322,9 @@ ifeq ($(HAVE_VM_COMPILED),true)
     Q3DOBJ += $(B)/ded/vm_sparc.o
   endif
   ifeq ($(ARCH),armv7l)
+    Q3DOBJ += $(B)/client/vm_armv7l.o
+  endif
+  ifeq ($(ARCH),vero4k)
     Q3DOBJ += $(B)/client/vm_armv7l.o
   endif
 endif

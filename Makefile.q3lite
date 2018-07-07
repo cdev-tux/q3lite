@@ -35,6 +35,8 @@
 ifneq ($(PLATFORM_TYPE),)
   ifeq ($(shell uname -m),armv7l)
     override ARCH=armv7l
+  else ifeq ($(shell sed -n '/^Hardware/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo),Vero4K)
+    override ARCH=vero4k
   else
     override ARCH=arm
   endif
@@ -141,12 +143,18 @@ endif
     PI_CFLAGS=-march=armv8-a+crc -mfpu=vfpv4 -mtune=cortex-a53
   endif
   CFLAGS += -DHAVE_GLES $(PI_CFLAGS) -mfloat-abi=hard -Ofast -I/opt/vc/include
+  ifeq ($(PLATFORM_TYPE),vero4k) # Vero4k overide all priorCFLAGS
+    CFLAGS =-march=armv8-a+crc -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -ftree-vectorize -funsafe-math-optimizations
+    CFLAGS += -DHAVE_GLES -I/opt/vero3/include
+  endif
   ifneq ($(wildcard /opt/vc/lib/libbrcmEGL.so),)
     ifneq ($(wildcard /opt/vc/lib/libbrcmGLESv2.so),)
       LDFLAGS += -L/opt/vc/lib -lbrcmEGL -lbrcmGLESv2
     else
       LDFLAGS += -L/opt/vc/lib -lEGL -lGLESv2
     endif
+  else ifneq ($(wildcard /opt/vero3/lib/libMali.so),) # Vero4k
+    LDFLAGS += -L/opt/vero3/lib -lMali
   else
     LDFLAGS += -L/opt/vc/lib -lEGL -lGLESv2
   endif
