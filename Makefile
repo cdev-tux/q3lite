@@ -50,6 +50,10 @@ endif
 # causing problems with keeping up to date with the repository.
 #
 #############################################################################
+
+# macro used by included Makefiles too
+bin_path=$(shell which $(1) 2> /dev/null)
+
 -include Makefile.q3lite
 -include Makefile.local
 
@@ -274,8 +278,6 @@ LOKISETUPDIR=misc/setup
 NSISDIR=misc/nsis
 SDLHDIR=$(MOUNT_DIR)/SDL2
 LIBSDIR=$(MOUNT_DIR)/libs
-
-bin_path=$(shell which $(1) 2> /dev/null)
 
 # We won't need this if we only build the server
 ifneq ($(BUILD_CLIENT),0)
