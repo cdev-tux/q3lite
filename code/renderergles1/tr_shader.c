@@ -3006,13 +3006,13 @@ static void ScanAndLoadShaderFiles( void )
 			token = COM_ParseExt(&p, qtrue);
 			if(token[0] != '{' || token[1] != '\0')
 			{
-				ri.Printf(PRINT_WARNING, "WARNING: Ignoring shader file %s. Shader \"%s\" on line %d missing opening brace",
+				ri.Printf(PRINT_DEVELOPER, "WARNING: Ignoring shader file %s. Shader \"%s\" on line %d missing opening brace",
 							filename, shaderName, shaderLine);
 				if (token[0])
 				{
-					ri.Printf(PRINT_WARNING, " (found \"%s\" on line %d)", token, COM_GetCurrentParseLine());
+					ri.Printf(PRINT_DEVELOPER, " (found \"%s\" on line %d)", token, COM_GetCurrentParseLine());
 				}
-				ri.Printf(PRINT_WARNING, ".\n");
+				ri.Printf(PRINT_DEVELOPER, ".\n");
 				ri.FS_FreeFile(buffers[i]);
 				buffers[i] = NULL;
 				break;
@@ -3020,7 +3020,7 @@ static void ScanAndLoadShaderFiles( void )
 
 			if(!SkipBracedSection(&p, 1))
 			{
-				ri.Printf(PRINT_WARNING, "WARNING: Ignoring shader file %s. Shader \"%s\" on line %d missing closing brace.\n",
+				ri.Printf(PRINT_DEVELOPER, "WARNING: Ignoring shader file %s. Shader \"%s\" on line %d missing closing brace.\n",
 							filename, shaderName, shaderLine);
 				ri.FS_FreeFile(buffers[i]);
 				buffers[i] = NULL;
