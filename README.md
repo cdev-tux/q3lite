@@ -55,6 +55,13 @@ Client cvars:
                                       2 = No vote beeps for team votes only.  
                                       3 = No vote beeps for team / non-team votes.  
 
+  cg_noTaunts <0|1>                 - Toggle playing of client taunt sounds.
+                                      Useful when opponents press the taunt
+                                      key excessively.
+                                      0 = disabled.
+                                      1 = No taunt sounds played.
+
+
 Server cvars:
 
   g_intermissionDuration <seconds>  - Limits end-of-round intermission duration.  
