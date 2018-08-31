@@ -61,7 +61,6 @@ Client cvars:
                                       0 = disabled.
                                       1 = No taunt sounds played.
 
-
 Server cvars:
 
   g_intermissionDuration <seconds>  - Limits end-of-round intermission duration.  
@@ -128,12 +127,13 @@ Please submit patches as a GitHub pull request.
 
   * Quake III Arena [source code](https://github.com/id-Software/Quake-III-Arena) - [id software](http://www.idsoftware.com)
   * ioquake3 contributors - [github.com/ioquake/ioq3](https://github.com/ioquake/ioq3)
-  * SDL - [https://www.libsdl.org/](https://www.libsdl.org/)
-  * twolife - [github.com/twolife/ioq3](https://github.com/twolife/ioq3)
-  * ptitSeb - [github.com/ptitSeb/ioq3](https://github.com/ptitSeb/ioq3)
-  * q3mme - [github.com/entdark/q3mme](https://github.com/entdark/q3mme)
   * Quake3e - [github.com/ec-/Quake3e](https://github.com/ec-/Quake3e)
-  * Uber Demo Tools - [mightycow/uberdemotools](https://github.com/mightycow/uberdemotools)
+  * SDL - [libsdl.org](https://www.libsdl.org)
+  * Open Arena - [github.com/OpenArena](https://github.com/OpenArena)
+  * ptitSeb - [github.com/ptitSeb/ioq3](https://github.com/ptitSeb/ioq3)
+  * twolife - [github.com/twolife/ioq3](https://github.com/twolife/ioq3)
+  * q3mme - [github.com/entdark/q3mme](https://github.com/entdark/q3mme)
+  * Uber Demo Tools - [github.com/mightycow/uberdemotools](https://github.com/mightycow/uberdemotools)
   * and many other contributors
 
 

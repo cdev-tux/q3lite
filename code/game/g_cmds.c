@@ -1414,6 +1414,10 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 
 	trap_SendServerCommand( -1, va("print \"%s called a vote.\n\"", ent->client->pers.netname ) );
 
+	// save the clientNum of the vote caller and fail the vote
+	// in 'CheckVote' if they leave the game during the vote
+	level.voteClientNum = ent->client->ps.clientNum;
+
 	// start the voting, the caller automatically votes yes
 	level.voteTime = level.time;
 	level.voteYes = 1;
@@ -1586,6 +1590,10 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 		if (level.clients[i].sess.sessionTeam == team)
 			trap_SendServerCommand( i, va("print \"%s called a team vote.\n\"", ent->client->pers.netname ) );
 	}
+
+	// save the clientNum of the vote caller and fail the vote
+	// in 'TeamCheckVote' if they leave the game during the vote
+	level.voteClientNum = ent->client->ps.clientNum;
 
 	// start the voting, the caller automatically votes yes
 	level.teamVoteTime[cs_offset] = level.time;
