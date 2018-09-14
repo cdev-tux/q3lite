@@ -819,6 +819,9 @@ void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd ) {
 	else
 		memset(&client->lastUsercmd, '\0', sizeof(client->lastUsercmd));
 
+	client->inactivityTime = sv.time + sv_inactivity->integer * 1000;
+	client->inactivityWarning = qfalse;
+
 	// call the game begin function
 	VM_Call( gvm, GAME_CLIENT_BEGIN, client - svs.clients );
 }
@@ -1661,6 +1664,72 @@ static qboolean SV_ClientCommand( client_t *cl, msg_t *msg ) {
 
 
 /*
+=================
+SV_MoveClientToSpec
+=================
+*/
+void SV_MoveClientToSpec( int clientNum, const char *reason ) {
+	Com_Printf( "Forcing player %d to spectate\n", clientNum );
+
+	Cbuf_ExecuteText( EXEC_NOW, va( "forceteam %d spectator\n", clientNum ) );
+
+	SV_SendServerCommand( svs.clients + clientNum, "cp \"%s\"", reason );
+}
+
+/*
+=================
+ClientInactivityTimer
+
+Returns qfalse if the client is dropped
+=================
+*/
+qboolean ClientInactivityTimer( client_t *client ) {
+	char	info[MAX_INFO_STRING];
+	int     team;
+	char	intermission[10];
+	char	warmup[10];
+
+	if ( client->netchan.remoteAddress.type == NA_BOT ) {
+		return qtrue;
+	}
+
+	SV_GetConfigstring( CS_INTERMISSION, intermission, sizeof ( intermission ) );
+	SV_GetConfigstring( CS_WARMUP, warmup, sizeof ( warmup ) );
+	SV_GetConfigstring( CS_PLAYERS + (int)(client - svs.clients), info, sizeof ( info ) );
+
+	team = atoi( Info_ValueForKey( info, "t" ) );
+
+	if ( !sv_inactivity->integer ||
+		team == TEAM_SPECTATOR ||
+		client->lastUsercmd.forwardmove ||
+		client->lastUsercmd.rightmove ||
+		client->lastUsercmd.upmove ||
+		(client->lastUsercmd.buttons & BUTTON_ATTACK) ||
+		intermission[0] == '1' || warmup[0] == '1') {
+
+		if ( sv_inactivity->integer ) {
+			client->inactivityTime = sv.time + sv_inactivity->integer * 1000;
+		} else {
+			// give everyone some time, so if the operator sets sv_inactivity during
+			// gameplay, everyone isn't kicked
+			client->inactivityTime = sv.time + 60 * 1000;
+		}
+
+		client->inactivityWarning = qfalse;
+	} else if ( client->netchan.remoteAddress.type != NA_LOOPBACK ) {
+		if ( sv.time > client->inactivityTime ) {
+			SV_MoveClientToSpec( client - svs.clients, "^1You've been moved to spectator\n^1for idling too long.\n" );
+			return qfalse;
+		}
+		if ( sv.time > client->inactivityTime - 10000 && !client->inactivityWarning ) {
+			client->inactivityWarning = qtrue;
+			SV_SendServerCommand( client, "cp \"Ten seconds until inactivity drop!\n\"" );
+		}
+	}
+	return qtrue;
+}
+
+/*
 ==================
 SV_ClientThink
 
@@ -1672,6 +1741,11 @@ void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
 
 	if ( cl->state != CS_ACTIVE ) {
 		return;		// may have been kicked during the last usercmd
+	}
+
+	// check for inactivity timer, but never drop the local client of a non-dedicated server
+	if ( !ClientInactivityTimer( cl ) ) {
+		return;
 	}
 
 	VM_Call( gvm, GAME_CLIENT_THINK, cl - svs.clients );

@@ -104,7 +104,12 @@ void SV_GameDropClient( int clientNum, const char *reason ) {
 	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
 		return;
 	}
-	SV_DropClient( svs.clients + clientNum, reason );	
+
+	if ( strcmp( "Dropped due to inactivity", reason ) == 0 ) {
+		SV_MoveClientToSpec( clientNum, "^1You've been moved to spectator\n^1for idling too long.\n" );
+	} else {
+		SV_DropClient( svs.clients + clientNum, reason );
+	}
 }
 
 

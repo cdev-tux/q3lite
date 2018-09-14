@@ -206,6 +206,8 @@ typedef struct client_s {
 #ifdef LEGACY_PROTOCOL
 	qboolean		compat;
 #endif
+	int				inactivityTime;
+	qboolean		inactivityWarning;
 } client_t;
 
 //=============================================================================
@@ -334,6 +336,8 @@ struct leakyBucket_s {
 	leakyBucket_t *prev, *next;
 };
 
+extern cvar_t *sv_inactivity;
+
 extern leakyBucket_t outboundLeakyBucket;
 
 qboolean SVC_RateLimit( leakyBucket_t *bucket, int burst, int period );
@@ -387,6 +391,8 @@ void SV_DropClient( client_t *drop, const char *reason );
 
 void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK );
 void SV_ClientThink (client_t *cl, usercmd_t *cmd);
+
+void SV_MoveClientToSpec( int clientNum, const char *reason );
 
 int SV_WriteDownloadToClient(client_t *cl , msg_t *msg);
 int SV_SendDownloadMessages(void);
