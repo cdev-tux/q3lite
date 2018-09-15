@@ -651,6 +651,10 @@ void SV_Init (void)
 	sv_hostname = Cvar_Get ("sv_hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE );
 	sv_maxclients = Cvar_Get ("sv_maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH);
 
+	sv_maxconcurrent = Cvar_Get( "sv_maxconcurrent", "1", CVAR_ARCHIVE );
+	Cvar_CheckRange( sv_maxconcurrent, 0, 64, qtrue );
+	Cvar_SetDescription( sv_maxconcurrent, "Limits number of simultaneous connections from the same IP address." );
+
 	sv_minRate = Cvar_Get ("sv_minRate", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	sv_maxRate = Cvar_Get ("sv_maxRate", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	sv_dlRate = Cvar_Get("sv_dlRate", "100", CVAR_ARCHIVE | CVAR_SERVERINFO);

@@ -79,6 +79,10 @@ Server cvars:
                                       > 0 = inactivity period in seconds, then
                                       server moves player to spectator mode.
 
+  sv_maxconcurrent <0|1..64>        - Limits the number of simultaneous player
+                                      connections from the same IP address.
+                                      0 = disabled.
+                                      Valid range 1 - 64.
 ```
 
 ### Getting Started

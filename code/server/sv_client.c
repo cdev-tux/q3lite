@@ -334,7 +334,7 @@ A "connect" OOB command has been received
 
 void SV_DirectConnect( netadr_t from ) {
 	char		userinfo[MAX_INFO_STRING];
-	int			i;
+	int			i, n;
 	client_t	*cl, *newcl;
 	client_t	temp;
 	sharedEntity_t *ent;
@@ -346,7 +346,7 @@ void SV_DirectConnect( netadr_t from ) {
 	int			startIndex;
 	intptr_t		denied;
 	int			count;
-	char		*ip;
+	char		*ip, *info;
 #ifdef LEGACY_PROTOCOL
 	qboolean	compat = qfalse;
 #endif
@@ -360,7 +360,33 @@ void SV_DirectConnect( netadr_t from ) {
 		return;
 	}
 
-	Q_strncpyz( userinfo, Cmd_Argv(1), sizeof(userinfo) );
+	// Prevent using connect as an amplifier
+	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {
+		if ( com_developer->integer ) {
+			Com_Printf( "SV_DirectConnect: rate limit from %s exceeded, dropping request\n",
+				NET_AdrToString( from ) );
+		}
+		return;
+	}
+
+	// check for concurrent connections
+	if ( sv_maxconcurrent->integer > 0 ) {
+		for ( i = 0, n = 0; i < sv_maxclients->integer; i++ ) {
+			netadr_t addr = svs.clients[ i ].netchan.remoteAddress;
+			if ( addr.type != NA_BOT && NET_CompareBaseAdr( addr, from ) ) {
+				if ( svs.clients[ i ].state >= CS_CONNECTED && !svs.clients[ i ].justConnected ) {
+					if ( ++n >= sv_maxconcurrent->integer ) {
+						NET_OutOfBandPrint( NS_SERVER, from, "print\nToo many connections\n" );
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	info = Cmd_Argv( 1 );
+
+	Q_strncpyz( userinfo, info, sizeof(userinfo) );
 
 	version = atoi(Info_ValueForKey(userinfo, "protocol"));
 	
@@ -379,7 +405,8 @@ void SV_DirectConnect( netadr_t from ) {
 		}
 	}
 
-	challenge = atoi( Info_ValueForKey( userinfo, "challenge" ) );
+	// verify challenge in first place
+	challenge = atoi( Info_ValueForKey( info, "challenge" ) );
 	qport = atoi( Info_ValueForKey( userinfo, "qport" ) );
 
 	// quick reject
@@ -594,6 +621,7 @@ gotnewcl:
 	newcl->lastSnapshotTime = 0;
 	newcl->lastPacketTime = svs.time;
 	newcl->lastConnectTime = svs.time;
+	newcl->justConnected = qtrue;
 	
 	// when we receive the first packet from the client, we will
 	// notice that it is from a different serverid and that the
@@ -1766,9 +1794,9 @@ each of the backup packets.
 static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 	int			i, key;
 	int			cmdCount;
-	usercmd_t	nullcmd;
-	usercmd_t	cmds[MAX_PACKET_USERCMDS];
-	usercmd_t	*cmd, *oldcmd;
+	static usercmd_t nullcmd = { 0 };
+	usercmd_t   cmds[MAX_PACKET_USERCMDS], *cmd;
+	usercmd_t   *oldcmd;
 
 	if ( delta ) {
 		cl->deltaMessage = cl->messageAcknowledge;
@@ -1795,7 +1823,6 @@ static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 	// also use the last acknowledged server command in the key
 	key ^= MSG_HashKey(cl->reliableCommands[ cl->reliableAcknowledge & (MAX_RELIABLE_COMMANDS-1) ], 32);
 
-	Com_Memset( &nullcmd, 0, sizeof(nullcmd) );
 	oldcmd = &nullcmd;
 	for ( i = 0 ; i < cmdCount ; i++ ) {
 		cmd = &cmds[i];
@@ -2019,6 +2046,9 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 		cl->reliableAcknowledge = cl->reliableSequence;
 		return;
 	}
+
+	cl->justConnected = qfalse;
+
 	// if this is a usercmd from a previous gamestate,
 	// ignore it or retransmit the current gamestate
 	// 
