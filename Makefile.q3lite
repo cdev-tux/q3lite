@@ -416,10 +416,10 @@ q3lite_install: q3lite_makedirs
   # Install compatible SDL2 dynamic libs if Q3LITE_INSTALL_SDL=1 and files are available in the source directory.
   # If Q3LITE_INSTALL_SDL!=1 then remove the $(Q3LITE_LIB_PATH) folder and files.
   ifeq ($(Q3LITE_INSTALL_SDL),1) 
-    ifneq ($(wildcard $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.4.0),)
-	$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.4.0 $(Q3LITE_LIB_PATH)/libSDL2-2.0.so.0.4.0
+    ifneq ($(wildcard $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.9.0),)
+	$(INSTALL) -m 0755 -o root -g root -p $(STRIP_FLAG) $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.9.0 $(Q3LITE_LIB_PATH)/libSDL2-2.0.so.0.9.0
     else
-	@echo "***Source file $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.4.0 not found, unable to install."
+	@echo "***Source file $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0.9.0 not found, unable to install."
     endif
     ifneq ($(wildcard $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0),)
 	cp -Ppf $(Q3LITE_SRC_SDL_PATH)/libSDL2-2.0.so.0 $(Q3LITE_LIB_PATH)/libSDL2-2.0.so.0
