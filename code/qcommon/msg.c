@@ -242,7 +242,7 @@ int MSG_ReadBits( msg_t *msg, int bits ) {
 			for ( i = 0; i < bits; i += 8 )
 			{
 				bitIndex += HuffmanGetSymbol( &sym, buffer, bitIndex );
-				value |= ( sym << (i+nbits) );
+				value = ( unsigned int )value | ( ( unsigned int )sym << ( i+nbits ) );
 			}
 		}
 		msg->bit = bitIndex;
