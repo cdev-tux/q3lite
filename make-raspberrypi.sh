@@ -325,7 +325,6 @@ if [ -w $q3l_compile_path ]; then
 		USE_OPENAL_DLOPEN=0 \
 		USE_CURL=0 \
 		USE_CURL_DLOPEN=0 \
-		USE_CODEC_VORBIS=0 \
 		USE_CODEC_OPUS=0 \
 		USE_MUMBLE=0 \
 		USE_VOIP=0 \
