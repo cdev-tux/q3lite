@@ -600,7 +600,7 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 
 /*
 ===============
-NET_OutOfBandPrint
+NET_OutOfBandData
 
 Sends a data message in an out-of-band datagram (only used for "connect")
 ================
