@@ -123,7 +123,7 @@ else
   SDL_CFLAGS += -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -D_REENTRANT
 endif
 
-SDL_CFLAGS += -Wno-strict-prototypes -Wno-unused
+SDL_CFLAGS += -Wno-strict-prototypes -Wno-unused -Wno-uninitialized
 
 ifeq ($(Q3LITE_INSTALL_SDL),1)
   override SDL_LIBS=-L/usr/local/lib/q3lite -L/usr/local/lib -L$(Q3LITE_SRC_SDL_PATH) -Wl,-rpath,/usr/local/lib/q3lite:/usr/local/lib -lSDL2 -lpthread
