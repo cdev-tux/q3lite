@@ -125,6 +125,14 @@ endif
 
 SDL_CFLAGS += -Wno-strict-prototypes -Wno-unused -Wno-uninitialized
 
+ifeq ($(USE_VOIP),1)
+  USE_CODEC_OPUS=1
+  USE_CODEC_VORBIS=1
+else
+  USE_CODEC_OPUS=0
+  USE_CODEC_VORBIS=0
+endif
+
 ifeq ($(Q3LITE_INSTALL_SDL),1)
   override SDL_LIBS=-L/usr/local/lib/q3lite -L/usr/local/lib -L$(Q3LITE_SRC_SDL_PATH) -Wl,-rpath,/usr/local/lib/q3lite:/usr/local/lib -lSDL2 -lpthread
 else
