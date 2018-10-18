@@ -1122,6 +1122,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 					stage->specularScale[1] = (stage->specularScale[0] < 0.5f) ? 0.0f : 1.0f;
 					stage->specularScale[0] = smoothness;
 				}
+				else
 				{
 					// two values, rgb then gloss
 					stage->specularScale[3] = stage->specularScale[1];
@@ -1140,7 +1141,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 				continue;
 			}
 
-			stage->specularScale[2] = atof( token );
+			stage->specularScale[3] = atof( token );
 
 		}
 		//
