@@ -182,8 +182,6 @@ int		max_polyverts;
 */
 static void InitOpenGL( void )
 {
-	char renderer_buffer[1024];
-
 	//
 	// initialize OS specific portions of the renderer
 	//
@@ -200,9 +198,6 @@ static void InitOpenGL( void )
 		GLint		temp;
 		
 		GLimp_Init( qfalse );
-
-		strcpy( renderer_buffer, glConfig.renderer_string );
-		Q_strlwr( renderer_buffer );
 
 		// OpenGL driver constants
 		qglGetIntegerv( GL_MAX_TEXTURE_SIZE, &temp );
