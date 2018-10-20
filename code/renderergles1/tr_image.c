@@ -711,7 +711,7 @@ static void Upload32( unsigned *data,
 			}
 			else
 			{
-				if ( r_texturebits->integer == 16 )
+				if ( r_texturebits->integer == 16 || r_texturebits->integer == 32 )
 				{
 					internalFormat = GL_RGB5;
 				}
@@ -729,7 +729,7 @@ static void Upload32( unsigned *data,
 			}
 			else
 			{
-				if ( r_texturebits->integer == 16 )
+				if ( r_texturebits->integer == 16 || r_texturebits->integer == 32 )
 				{
 					internalFormat = GL_RGBA4;
 				}
