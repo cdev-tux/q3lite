@@ -39,6 +39,14 @@ Suite 120, Rockville, Maryland 20850 USA.
 #include "../renderercommon/iqm.h"
 #include "../renderercommon/qgl.h"
 
+#define GLE(ret, name, ...) extern name##proc * qgl##name;
+QGL_1_1_PROCS;
+QGL_1_1_FIXED_FUNCTION_PROCS;
+QGL_DESKTOP_1_1_PROCS;
+QGL_DESKTOP_1_1_FIXED_FUNCTION_PROCS;
+QGL_3_0_PROCS;
+#undef GLE
+
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
 

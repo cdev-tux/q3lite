@@ -39,6 +39,12 @@ Suite 120, Rockville, Maryland 20850 USA.
 #include "../renderercommon/iqm.h"
 #include "../renderercommon/qgl.h"
 
+#define GLE(ret, name, ...) extern name##proc * qgl##name;
+QGL_1_1_PROCS;
+QGL_1_1_FIXED_FUNCTION_PROCS;
+QGL_ES_1_1_PROCS;
+#undef GLE
+
 //#ifdef HAVE_GLES
 #ifdef USE_LOCAL_HEADERS
 #	include "SDL_opengles.h"
