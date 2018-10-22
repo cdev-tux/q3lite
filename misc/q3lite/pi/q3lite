@@ -38,7 +38,7 @@ xinput_id=""
 # +set vm_* 1 = .so files are used (Linux, Mac)
 # +set vm_* 2 = .qvm files are used (Quake Virtual Machine, default)
 
-settings="+set com_hunkMegs 192 +set com_zoneMegs 24 +set com_soundMegs 16 +set fs_homepath $q3l_homepath +set vm_ui 2 +set vm_cgame 2 +set com_introplayed 1 +set com_protocol 68"
+settings="+set com_hunkMegs 192 +set com_zoneMegs 24 +set com_soundMegs 16 +set sv_pure 0 +set fs_homepath $q3l_homepath +set vm_ui 2 +set vm_game 2 +set vm_cgame 2 +set com_introplayed 1 +set com_protocol 68"
 timedemo="$settings +set timedemo 1 +demo four"
 
 if [ $(uname -m) = armv7l ]; then
