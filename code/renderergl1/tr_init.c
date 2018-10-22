@@ -197,7 +197,7 @@ static void InitOpenGL( void )
 	{
 		GLint		temp;
 		
-		GLimp_Init( qfalse );
+		GLimp_Init( qtrue );
 
 		// OpenGL driver constants
 		qglGetIntegerv( GL_MAX_TEXTURE_SIZE, &temp );
