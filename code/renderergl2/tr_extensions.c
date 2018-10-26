@@ -37,7 +37,7 @@ Suite 120, Rockville, Maryland 20850 USA.
 #include "tr_local.h"
 #include "tr_dsa.h"
 
-void GLimp_InitExtraExtensions()
+void GLimp_InitExtraExtensions(void)
 {
 	char *extension;
 	const char* result[3] = { "...ignoring %s\n", "...using %s\n", "...%s not found\n" };
