@@ -127,7 +127,6 @@ if [ "$gui" = "yes" ]; then
 else
 	sudo chvt 2
 	sudo chvt 1
-	sudo systemctl restart getty@tty1.service
 fi
 
 exit 0
