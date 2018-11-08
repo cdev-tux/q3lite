@@ -40,8 +40,8 @@ Suite 120, Rockville, Maryland 20850 USA.
 // Require a minimum version of SDL
 #define MINSDL_MAJOR 2
 #define MINSDL_MINOR 0
-#if SDL_VERSION_ATLEAST( 2, 0, 5 )
-#define MINSDL_PATCH 5
+#if SDL_VERSION_ATLEAST( 2, 0, 9 )
+#define MINSDL_PATCH 9
 #else
 #define MINSDL_PATCH 0
 #endif

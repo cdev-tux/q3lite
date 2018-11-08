@@ -720,10 +720,11 @@ int main( int argc, char **argv )
 	if( SDL_VERSIONNUM( ver.major, ver.minor, ver.patch ) <
 			SDL_VERSIONNUM( MINSDL_MAJOR, MINSDL_MINOR, MINSDL_PATCH ) )
 	{
-		Sys_CrashLog( va("\nERROR: \tQ3lite requires SDL2 version " MINSDL_VERSION " but the only version\n"
+		Sys_CrashLog( va("\nERROR: \tQ3lite requires SDL2 version " MINSDL_VERSION ", but the only version \n"
 			"\tfound was %d.%d.%d. You can try reinstalling Q3lite, or manually \n"
-			"\tdownloading and compiling SDL2-2.0.4 per instructions in\n"
-			"\tthe \"Compiling and Installation Guide\" in the Q3lite wiki.\n",
+			"\tdownloading and compiling SDL2 version " MINSDL_VERSION " or greater per \n"
+			"\tthe \"Compiling and Installation Guide\" in the Q3lite wiki. \n"
+			"\thttps://github.com/cdev-tux/q3lite/wiki/Compiling-Install-Guide \n",
 			ver.major, ver.minor, ver.patch ));
 
 		Sys_Exit( 1 );
