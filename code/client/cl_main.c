@@ -57,6 +57,7 @@ cvar_t	*cl_voip;
 
 #ifdef USE_RENDERER_DLOPEN
 cvar_t	*cl_renderer;
+cvar_t	*cl_sysvidmode;
 #endif
 
 cvar_t	*cl_nodelta;
@@ -453,25 +454,6 @@ void CL_CaptureVoip(void)
 	if ((useVad) && (!cl_voipSend->integer))
 		Cvar_Set("cl_voipSend", "1");  // lots of things reset this.
 
-/*
-====================
-CL_WriteGamestate
-====================
-*/
-static void CL_WriteGamestate( qboolean initial ) 
-{
-	byte		bufData[ MAX_MSGLEN_BUF ];
-	char		*s;
-	msg_t		msg;
-	int			i;
-	int			len;
-	entityState_t	*ent;
-	entityState_t	nullstate;
-
-	// write out the gamestate message
-	MSG_Init( &msg, bufData, MAX_MSGLEN );
-	MSG_Bitstream( &msg );
-
 	if (cl_voipSend->modified) {
 		qboolean dontCapture = qfalse;
 		if (clc.state != CA_ACTIVE)
@@ -594,11 +576,6 @@ CLIENT RELIABLE COMMAND COMMUNICATION
 
 =======================================================================
 */
-	clSnapshot_t *snap, *oldSnap; 
-	byte	bufData[ MAX_MSGLEN_BUF ];
-	msg_t	msg;
-	int		i, len;
-
 
 /*
 ======================
@@ -2641,7 +2618,9 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 
 	c = Cmd_Argv(0);
 
-	Com_DPrintf ("CL packet %s: %s\n", NET_AdrToStringwPort(from), c);
+	if ( com_developer->integer ) {
+		Com_Printf( "CL packet %s: %s\n", NET_AdrToStringwPort( from ), c );
+	}
 
 	// challenge from the server we are connecting to
 	if (!Q_stricmp(c, "challengeResponse"))
@@ -2867,13 +2846,15 @@ void CL_PacketEvent( netadr_t from, msg_t *msg ) {
 	// packet from server
 	//
 	if ( !NET_CompareAdr( from, clc.netchan.remoteAddress ) ) {
-		Com_DPrintf ("%s:sequenced packet without connection\n"
-			, NET_AdrToStringwPort( from ) );
+		if ( com_developer->integer ) {
+			Com_Printf("%s:sequenced packet without connection\n"
+				, NET_AdrToStringwPort( from ) );
+		}
 		// FIXME: send a client disconnect?
 		return;
 	}
 
-	if (!CL_Netchan_Process( &clc.netchan, msg) ) {
+	if ( !CL_Netchan_Process( &clc.netchan, msg ) ) {
 		return;		// out of order, duplicated, etc
 	}
 
@@ -3246,23 +3227,34 @@ void CL_InitRef( void ) {
 	Com_Printf( "----- Initializing Renderer ----\n" );
 
 #ifdef USE_RENDERER_DLOPEN
-	cl_renderer = Cvar_Get("cl_renderer", "opengl2", CVAR_ARCHIVE | CVAR_LATCH);
+	cl_sysvidmode = Cvar_Get("cl_sysvidmode", "opengles1", CVAR_ARCHIVE | CVAR_LATCH);
 
-	Com_sprintf(dllName, sizeof(dllName), "renderer_%s_" ARCH_STRING DLL_EXT, cl_renderer->string);
-
-	if(!(rendererLib = Sys_LoadDll(dllName, qfalse)) && strcmp(cl_renderer->string, cl_renderer->resetString))
+	if( Q_stricmp( cl_sysvidmode->string, "opengles1" ) == 0 )
 	{
-		Com_Printf("failed:\n\"%s\"\n", Sys_LibraryError());
-		Cvar_ForceReset("cl_renderer");
+		Com_sprintf(dllName, sizeof(dllName), "renderer_%s_" ARCH_STRING DLL_EXT, cl_sysvidmode->string);
 
-		Com_sprintf(dllName, sizeof(dllName), "renderer_opengl2_" ARCH_STRING DLL_EXT);
 		rendererLib = Sys_LoadDll(dllName, qfalse);
+	} else {
+		cl_renderer = Cvar_Get("cl_renderer", "opengl1", CVAR_ARCHIVE | CVAR_LATCH);
+
+		Com_sprintf(dllName, sizeof(dllName), "renderer_%s_" ARCH_STRING DLL_EXT, cl_renderer->string);
+
+		if(!(rendererLib = Sys_LoadDll(dllName, qfalse)) && strcmp(cl_renderer->string, cl_renderer->resetString))
+		{
+			Com_Printf("failed:\n\"%s\"\n", Sys_LibraryError());
+			Cvar_ForceReset("cl_renderer");
+
+			Com_sprintf(dllName, sizeof(dllName), "renderer_opengl1_" ARCH_STRING DLL_EXT);
+			rendererLib = Sys_LoadDll(dllName, qfalse);
+		}
 	}
 
 	if(!rendererLib)
 	{
 		Com_Printf("failed:\n\"%s\"\n", Sys_LibraryError());
 		Com_Error(ERR_FATAL, "Failed to load renderer");
+	} else {
+		Com_Printf("Renderer loaded.\n");
 	}
 
 	GetRefAPI = Sys_LoadFunction(rendererLib, "GetRefAPI");
@@ -3744,6 +3736,17 @@ void CL_Init( void ) {
 	Cvar_Get( "cl_guid", "", CVAR_USERINFO | CVAR_ROM );
 	CL_UpdateGUID( NULL, 0 );
 
+	// Display SDL compiled/linked version numbers.
+	SDL_version compiled;
+	SDL_version linked;
+
+	SDL_VERSION( &compiled );
+	SDL_GetVersion( &linked );
+	Com_Printf( "Compiled with SDL v%d.%d.%d\n",
+		compiled.major, compiled.minor, compiled.patch );
+	Com_Printf( "Linking against SDL v%d.%d.%d\n",
+		linked.major, linked.minor, linked.patch );
+
 	Com_Printf( "----- Client Initialization Complete -----\n" );
 }
 
@@ -3911,7 +3914,10 @@ void CL_ServerInfoPacket( netadr_t from, msg_t *msg ) {
 		{
 			// calc ping time
 			cl_pinglist[i].time = Sys_Milliseconds() - cl_pinglist[i].start;
-			Com_DPrintf( "ping time %dms from %s\n", cl_pinglist[i].time, NET_AdrToString( from ) );
+			if ( com_developer->integer ) 
+			{
+				Com_Printf( "ping time %dms from %s\n", cl_pinglist[i].time, NET_AdrToString( from ) );
+			}
 
 			// save of info
 			Q_strncpyz( cl_pinglist[i].info, infoString, sizeof( cl_pinglist[i].info ) );

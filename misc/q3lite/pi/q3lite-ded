@@ -3,6 +3,12 @@
 # This file is part of Q3lite source code.
 # See COPYING.txt for license details.
 
+# Make sure we're running as root.
+if [[ $(id -u) -ne 0 ]]; then
+	echo -e "\nThe q3lite-ded script must be run as root, please retry using 'sudo q3lite-ded'.\n"
+	exit 1
+fi
+
 logged_in_user=$(who | grep -m 1 "." | awk '{print $1}')
 if [ -z "$logged_in_user" ]; then
 	q3l_user="pi"
@@ -55,11 +61,11 @@ if [  -f  $q3dir/q3ded.$arch ]; then
 		sudo -u $q3user $q3dir/q3ded.$arch $settings
 	else
 		echo -e "Unable to start the server under the $q3user account, user $q3user doesn't exist."
-		exit 1
+		exit 2
 	fi
 else
 	echo -e "Unable to find $q3dir/q3ded.$arch binary, exiting...\n"
-	exit 2
+	exit 3
 fi
 
 exit 0

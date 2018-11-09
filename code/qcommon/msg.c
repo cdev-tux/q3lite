@@ -242,7 +242,7 @@ int MSG_ReadBits( msg_t *msg, int bits ) {
 			for ( i = 0; i < bits; i += 8 )
 			{
 				bitIndex += HuffmanGetSymbol( &sym, buffer, bitIndex );
-				value |= ( sym << (i+nbits) );
+				value = ( unsigned int )value | ( ( unsigned int )sym << ( i+nbits ) );
 			}
 		}
 		msg->bit = bitIndex;
@@ -449,12 +449,14 @@ char *MSG_ReadString( msg_t *msg ) {
 		if ( c > 127 ) {
 			c = '.';
 		}
-
-		string[l] = c;
-		l++;
-	} while (l < sizeof(string)-1);
+		// break only after reading all expected data from bitstream
+		if ( l >= sizeof(string)-1 ) {
+			break;
+		}
+		string[l++] = c;
+	} while (1);
 	
-	string[l] = 0;
+	string[l] = '\0';
 	
 	return string;
 }
@@ -477,12 +479,14 @@ char *MSG_ReadBigString( msg_t *msg ) {
 		if ( c > 127 ) {
 			c = '.';
 		}
-
-		string[l] = c;
-		l++;
-	} while (l < sizeof(string)-1);
+		// break only after reading all expected data from bitstream
+		if ( l >= sizeof(string)-1 ) {
+			break;
+		}
+		string[l++] = c;
+	} while (1);
 	
-	string[l] = 0;
+	string[l] = '\0';
 	
 	return string;
 }
@@ -505,12 +509,14 @@ char *MSG_ReadStringLine( msg_t *msg ) {
 		if ( c > 127 ) {
 			c = '.';
 		}
-
-		string[l] = c;
-		l++;
-	} while (l < sizeof(string)-1);
+		// break only after reading all expected data from bitstream
+		if ( l >= sizeof(string)-1 ) {
+			break;
+		}
+		string[l++] = c;
+	} while (1);
 	
-	string[l] = 0;
+	string[l] = '\0';
 	
 	return string;
 }
@@ -543,54 +549,9 @@ int MSG_HashKey(const char *string, int maxlen) {
 	return hash;
 }
 
-/*
-=============================================================================
-
-delta functions
-  
-=============================================================================
-*/
-
 extern cvar_t *cl_shownet;
 
 #define	LOG(x) if( cl_shownet && cl_shownet->integer == 4 ) { Com_Printf("%s ", x ); };
-
-void MSG_WriteDelta( msg_t *msg, int oldV, int newV, int bits ) {
-	if ( oldV == newV ) {
-		MSG_WriteBits( msg, 0, 1 );
-		return;
-	}
-	MSG_WriteBits( msg, 1, 1 );
-	MSG_WriteBits( msg, newV, bits );
-}
-
-int	MSG_ReadDelta( msg_t *msg, int oldV, int bits ) {
-	if ( MSG_ReadBits( msg, 1 ) ) {
-		return MSG_ReadBits( msg, bits );
-	}
-	return oldV;
-}
-
-void MSG_WriteDeltaFloat( msg_t *msg, float oldV, float newV ) {
-	floatint_t fi;
-	if ( oldV == newV ) {
-		MSG_WriteBits( msg, 0, 1 );
-		return;
-	}
-	fi.f = newV;
-	MSG_WriteBits( msg, 1, 1 );
-	MSG_WriteBits( msg, fi.i, 32 );
-}
-
-float MSG_ReadDeltaFloat( msg_t *msg, float oldV ) {
-	if ( MSG_ReadBits( msg, 1 ) ) {
-		floatint_t fi;
-
-		fi.i = MSG_ReadBits( msg, 32 );
-		return fi.f;
-	}
-	return oldV;
-}
 
 /*
 =============================================================================

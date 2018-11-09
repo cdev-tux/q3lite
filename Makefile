@@ -106,11 +106,11 @@ VERSION=1.36
 endif
 
 ifndef CLIENTBIN
-CLIENTBIN=ioquake3
+CLIENTBIN=quake3
 endif
 
 ifndef SERVERBIN
-SERVERBIN=ioq3ded
+SERVERBIN=q3ded
 endif
 
 ifndef BASEGAME
@@ -174,7 +174,7 @@ ifndef USE_CURL_DLOPEN
 endif
 
 ifndef USE_CODEC_VORBIS
-USE_CODEC_VORBIS=0
+USE_CODEC_VORBIS=1
 endif
 
 ifndef USE_CODEC_OPUS
@@ -240,9 +240,9 @@ BR=$(BUILD_DIR)/release-$(PLATFORM)-$(ARCH)
 CDIR=$(MOUNT_DIR)/client
 SDIR=$(MOUNT_DIR)/server
 RCOMMONDIR=$(MOUNT_DIR)/renderercommon
-RGL1DIR=$(MOUNT_DIR)/rendererq3lgles1
+RGLES1DIR=$(MOUNT_DIR)/renderergles1
+RGL1DIR=$(MOUNT_DIR)/renderergl1
 RGL2DIR=$(MOUNT_DIR)/renderergl2
-RQ3LGLES1DIR=$(MOUNT_DIR)/rendererq3lgles1
 CMDIR=$(MOUNT_DIR)/qcommon
 SDLDIR=$(MOUNT_DIR)/sdl
 ASMDIR=$(MOUNT_DIR)/asm
@@ -254,10 +254,10 @@ NDIR=$(MOUNT_DIR)/null
 UIDIR=$(MOUNT_DIR)/ui
 Q3UIDIR=$(MOUNT_DIR)/q3_ui
 JPDIR=$(MOUNT_DIR)/jpeg-8c
-OGGDIR=$(MOUNT_DIR)/libogg-1.3.2
-VORBISDIR=$(MOUNT_DIR)/libvorbis-1.3.5
-OPUSDIR=$(MOUNT_DIR)/opus-1.1.4
-OPUSFILEDIR=$(MOUNT_DIR)/opusfile-0.8
+OGGDIR=$(MOUNT_DIR)/libogg-1.3.3
+VORBISDIR=$(MOUNT_DIR)/libvorbis-1.3.6
+OPUSDIR=$(MOUNT_DIR)/opus-1.2.1
+OPUSFILEDIR=$(MOUNT_DIR)/opusfile-0.9
 ZDIR=$(MOUNT_DIR)/zlib
 Q3ASMDIR=$(MOUNT_DIR)/tools/asm
 LBURGDIR=$(MOUNT_DIR)/tools/lcc/lburg
@@ -273,16 +273,28 @@ bin_path=$(shell which $(1) 2> /dev/null)
 
 # We won't need this if we only build the server
 ifneq ($(BUILD_CLIENT),0)
-  # set PKG_CONFIG_PATH to influence this, e.g.
-  # PKG_CONFIG_PATH=/opt/cross/i386-mingw32msvc/lib/pkgconfig
-  ifneq ($(call bin_path, pkg-config),)
-    CURL_CFLAGS ?= $(shell pkg-config --silence-errors --cflags libcurl)
-    CURL_LIBS ?= $(shell pkg-config --silence-errors --libs libcurl)
-    OPENAL_CFLAGS ?= $(shell pkg-config --silence-errors --cflags openal)
-    OPENAL_LIBS ?= $(shell pkg-config --silence-errors --libs openal)
-    SDL_CFLAGS ?= $(shell pkg-config --silence-errors --cflags sdl2|sed 's/-Dmain=SDL_main//')
-    SDL_LIBS ?= $(shell pkg-config --silence-errors --libs sdl2)
-    FREETYPE_CFLAGS ?= $(shell pkg-config --silence-errors --cflags freetype2)
+  # set PKG_CONFIG_PATH or PKG_CONFIG to influence this, e.g.
+  # PKG_CONFIG_PATH=/opt/cross/i386-mingw32msvc/lib/pkgconfig or
+  # PKG_CONFIG=arm-linux-gnueabihf-pkg-config
+  ifeq ($(CROSS_COMPILING),0)
+  PKG_CONFIG ?= pkg-config
+else
+ifneq ($(PKG_CONFIG_PATH),)
+  PKG_CONFIG ?= pkg-config
+else
+  # Don't use host pkg-config when cross-compiling.
+  # (unknown-pkg-config is meant to be a non-existant command.)
+  PKG_CONFIG ?= unknown-pkg-config
+endif
+endif
+
+  ifneq ($(call bin_path, $(PKG_CONFIG)),)
+    CURL_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags libcurl)
+    CURL_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs libcurl)
+    OPENAL_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags openal)
+    OPENAL_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs openal)
+    SDL_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags sdl2|sed 's/-Dmain=SDL_main//')
+    SDL_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs sdl2)
   else
     # assume they're in the system default paths (no -I or -L needed)
     CURL_LIBS ?= -lcurl
@@ -291,8 +303,8 @@ ifneq ($(BUILD_CLIENT),0)
   # Use sdl2-config if all else fails
   ifeq ($(SDL_CFLAGS),)
     ifneq ($(call bin_path, sdl2-config),)
-      SDL_CFLAGS ?= $(shell sdl2-config --cflags)
-      SDL_LIBS ?= $(shell sdl2-config --libs)
+      SDL_CFLAGS = $(shell sdl2-config --cflags)
+      SDL_LIBS = $(shell sdl2-config --libs)
     endif
   endif
 endif
@@ -371,7 +383,7 @@ ifneq (,$(findstring "$(PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu" "gnu")
   LIBS=-ldl -lm
 
   CLIENT_LIBS=$(SDL_LIBS)
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
+  RENDERER_LIBS = $(SDL_LIBS)
 
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
@@ -601,7 +613,7 @@ ifdef MINGW
     CLIENT_LDFLAGS += -mwindows
   endif
   CLIENT_LIBS = -lgdi32 -lole32
-  RENDERER_LIBS = -lgdi32 -lole32 -lopengl32
+  RENDERER_LIBS = -lgdi32 -lole32 -static-libgcc
 
   ifeq ($(USE_FREETYPE),1)
     FREETYPE_CFLAGS = -Ifreetype2
@@ -687,7 +699,7 @@ ifeq ($(PLATFORM),freebsd)
   CLIENT_LIBS =
 
   CLIENT_LIBS += $(SDL_LIBS)
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
+  RENDERER_LIBS = $(SDL_LIBS)
 
   # optional features/libraries
   ifeq ($(USE_OPENAL),1)
@@ -778,7 +790,7 @@ ifeq ($(PLATFORM),openbsd)
   CLIENT_LIBS =
 
   CLIENT_LIBS += $(SDL_LIBS)
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
+  RENDERER_LIBS = $(SDL_LIBS)
 
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
@@ -838,7 +850,7 @@ ifeq ($(PLATFORM),irix64)
   # FIXME: The X libraries probably aren't necessary?
   CLIENT_LIBS=-L/usr/X11/$(LIB) $(SDL_LIBS) \
     -lX11 -lXext -lm
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
+  RENDERER_LIBS = $(SDL_LIBS)
 
 else # ifeq IRIX
 
@@ -893,7 +905,7 @@ ifeq ($(PLATFORM),sunos)
   BOTCFLAGS=-O0
 
   CLIENT_LIBS +=$(SDL_LIBS) -lX11 -lXext -liconv -lm
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
+  RENDERER_LIBS = $(SDL_LIBS)
 
 else # ifeq sunos
 
@@ -945,14 +957,11 @@ endif
 
 ifneq ($(BUILD_CLIENT),0)
   ifneq ($(USE_RENDERER_DLOPEN),0)
-    TARGETS += $(B)/$(CLIENTBIN)$(FULLBINEXT) $(B)/renderer_opengl1_$(SHLIBNAME)
-    ifneq ($(BUILD_RENDERER_OPENGL2),0)
-      TARGETS += $(B)/renderer_opengl2_$(SHLIBNAME)
-    endif
-  else
     TARGETS += $(B)/$(CLIENTBIN)$(FULLBINEXT)
-    ifneq ($(BUILD_RENDERER_OPENGL2),0)
-      TARGETS += $(B)/$(CLIENTBIN)_opengl2$(FULLBINEXT)
+    TARGETS += $(B)/renderer_opengles1_$(SHLIBNAME)
+    TARGETS += $(B)/renderer_opengl1_$(SHLIBNAME)
+    ifeq ($(BUILD_RENDERER_OPENGL2),1)
+      TARGETS += $(B)/renderer_opengl2_$(SHLIBNAME)
     endif
   endif
 endif
@@ -1018,8 +1027,8 @@ ifeq ($(NEED_OPUS),1)
       -I$(OPUSDIR)/include -I$(OPUSDIR)/celt -I$(OPUSDIR)/silk \
       -I$(OPUSDIR)/silk/float -I$(OPUSFILEDIR)/include
   else
-    OPUS_CFLAGS ?= $(shell pkg-config --silence-errors --cflags opusfile opus || true)
-    OPUS_LIBS ?= $(shell pkg-config --silence-errors --libs opusfile opus || echo -lopusfile -lopus)
+    OPUS_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags opusfile opus || true)
+    OPUS_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs opusfile opus || echo -lopusfile -lopus)
   endif
   CLIENT_CFLAGS += $(OPUS_CFLAGS)
   CLIENT_LIBS += $(OPUS_LIBS)
@@ -1031,8 +1040,8 @@ ifeq ($(USE_CODEC_VORBIS),1)
   ifeq ($(USE_INTERNAL_VORBIS),1)
     CLIENT_CFLAGS += -I$(VORBISDIR)/include -I$(VORBISDIR)/lib
   else
-    VORBIS_CFLAGS ?= $(shell pkg-config --silence-errors --cflags vorbisfile vorbis || true)
-    VORBIS_LIBS ?= $(shell pkg-config --silence-errors --libs vorbisfile vorbis || echo -lvorbisfile -lvorbis)
+    VORBIS_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags vorbisfile vorbis || true)
+    VORBIS_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs vorbisfile vorbis || echo -lvorbisfile -lvorbis)
   endif
   CLIENT_CFLAGS += $(VORBIS_CFLAGS)
   CLIENT_LIBS += $(VORBIS_LIBS)
@@ -1043,8 +1052,8 @@ ifeq ($(NEED_OGG),1)
   ifeq ($(USE_INTERNAL_OGG),1)
     OGG_CFLAGS = -I$(OGGDIR)/include
   else
-    OGG_CFLAGS ?= $(shell pkg-config --silence-errors --cflags ogg || true)
-    OGG_LIBS ?= $(shell pkg-config --silence-errors --libs ogg || echo -logg)
+    OGG_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags ogg || true)
+    OGG_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs ogg || echo -logg)
   endif
   CLIENT_CFLAGS += $(OGG_CFLAGS)
   CLIENT_LIBS += $(OGG_LIBS)
@@ -1061,8 +1070,8 @@ endif
 ifeq ($(USE_INTERNAL_ZLIB),1)
   ZLIB_CFLAGS = -DNO_GZIP -I$(ZDIR)
 else
-  ZLIB_CFLAGS ?= $(shell pkg-config --silence-errors --cflags zlib || true)
-  ZLIB_LIBS ?= $(shell pkg-config --silence-errors --libs zlib || echo -lz)
+  ZLIB_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags zlib || true)
+  ZLIB_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs zlib || echo -lz)
 endif
 BASE_CFLAGS += $(ZLIB_CFLAGS)
 LIBS += $(ZLIB_LIBS)
@@ -1073,15 +1082,15 @@ ifeq ($(USE_INTERNAL_JPEG),1)
 else
   # IJG libjpeg doesn't have pkg-config, but libjpeg-turbo uses libjpeg.pc;
   # we fall back to hard-coded answers if libjpeg.pc is unavailable
-  JPEG_CFLAGS ?= $(shell pkg-config --silence-errors --cflags libjpeg || true)
-  JPEG_LIBS ?= $(shell pkg-config --silence-errors --libs libjpeg || echo -ljpeg)
+  JPEG_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags libjpeg || true)
+  JPEG_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs libjpeg || echo -ljpeg)
   BASE_CFLAGS += $(JPEG_CFLAGS)
   RENDERER_LIBS += $(JPEG_LIBS)
 endif
 
 ifeq ($(USE_FREETYPE),1)
-  FREETYPE_CFLAGS ?= $(shell pkg-config --silence-errors --cflags freetype2 || true)
-  FREETYPE_LIBS ?= $(shell pkg-config --silence-errors --libs freetype2 || echo -lfreetype)
+  FREETYPE_CFLAGS ?= $(shell $(PKG_CONFIG) --silence-errors --cflags freetype2 || true)
+  FREETYPE_LIBS ?= $(shell $(PKG_CONFIG) --silence-errors --libs freetype2 || echo -lfreetype)
 
   BASE_CFLAGS += -DBUILD_FREETYPE $(FREETYPE_CFLAGS)
   RENDERER_LIBS += $(FREETYPE_LIBS)
@@ -1295,6 +1304,7 @@ targets: makedirs
 	@echo "  COMPILE_PLATFORM: $(COMPILE_PLATFORM)"
 	@echo "  COMPILE_ARCH: $(COMPILE_ARCH)"
 	@echo "  HAVE_VM_COMPILED: $(HAVE_VM_COMPILED)"
+	@echo "  PKG_CONFIG: $(PKG_CONFIG)"
 	@echo "  CC: $(CC)"
 ifeq ($(PLATFORM),mingw32)
 	@echo "  WINDRES: $(WINDRES)"
@@ -1343,7 +1353,8 @@ endif
 makedirs:
 	@$(MKDIR) $(B)/client/opus
 	@$(MKDIR) $(B)/client/vorbis
-	@$(MKDIR) $(B)/$(RQ3LGLES1DIR)
+	@$(MKDIR) $(B)/renderergles1
+	@$(MKDIR) $(B)/renderergl1
 	@$(MKDIR) $(B)/renderergl2
 	@$(MKDIR) $(B)/renderergl2/glsl
 	@$(MKDIR) $(B)/ded
@@ -1367,6 +1378,7 @@ makedirs:
 	@if [ ! -d $(B)/client ];then $(MKDIR) $(B)/client;fi
 	@if [ ! -d $(B)/client/opus ];then $(MKDIR) $(B)/client/opus;fi
 	@if [ ! -d $(B)/client/vorbis ];then $(MKDIR) $(B)/client/vorbis;fi
+	@if [ ! -d $(B)/renderergles1 ];then $(MKDIR) $(B)/renderergles1;fi
 	@if [ ! -d $(B)/renderergl1 ];then $(MKDIR) $(B)/renderergl1;fi
 	@if [ ! -d $(B)/renderergl2 ];then $(MKDIR) $(B)/renderergl2;fi
 	@if [ ! -d $(B)/renderergl2/glsl ];then $(MKDIR) $(B)/renderergl2/glsl;fi
@@ -1736,8 +1748,8 @@ Q3R2OBJ = \
   $(B)/renderergl2/tr_vbo.o \
   $(B)/renderergl2/tr_world.o \
   \
-  $(B)/$(RQ3LGLES1DIR)/sdl_gamma.o \
-  $(B)/$(RQ3LGLES1DIR)/sdl_glimp.o
+  $(B)/renderergles1/sdl_gamma.o \
+  $(B)/renderergles1/sdl_glimp.o
 
 Q3R2STRINGOBJ = \
   $(B)/renderergl2/glsl/bokeh_fp.o \
@@ -1769,102 +1781,142 @@ Q3R2STRINGOBJ = \
   $(B)/renderergl2/glsl/tonemap_fp.o \
   $(B)/renderergl2/glsl/tonemap_vp.o
 
-Q3ROBJ = \
-  $(B)/$(RQ3LGLES1DIR)/tr_animation.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_backend.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_bsp.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_cmds.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_curve.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_flares.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_font.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_image.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_image_bmp.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_image_jpg.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_image_pcx.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_image_png.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_image_tga.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_init.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_light.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_main.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_marks.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_mesh.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_model.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_model_iqm.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_noise.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_scene.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_shade.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_shade_calc.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_shader.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_shadows.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_sky.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_surface.o \
-  $(B)/$(RQ3LGLES1DIR)/tr_world.o \
+Q3RESOBJ = \
+  $(B)/renderergles1/tr_animation.o \
+  $(B)/renderergles1/tr_backend.o \
+  $(B)/renderergles1/tr_bsp.o \
+  $(B)/renderergles1/tr_cmds.o \
+  $(B)/renderergles1/tr_curve.o \
+  $(B)/renderergles1/tr_flares.o \
+  $(B)/renderergles1/tr_font.o \
+  $(B)/renderergles1/tr_image.o \
+  $(B)/renderergles1/tr_image_bmp.o \
+  $(B)/renderergles1/tr_image_jpg.o \
+  $(B)/renderergles1/tr_image_pcx.o \
+  $(B)/renderergles1/tr_image_png.o \
+  $(B)/renderergles1/tr_image_tga.o \
+  $(B)/renderergles1/tr_init.o \
+  $(B)/renderergles1/tr_light.o \
+  $(B)/renderergles1/tr_main.o \
+  $(B)/renderergles1/tr_marks.o \
+  $(B)/renderergles1/tr_mesh.o \
+  $(B)/renderergles1/tr_model.o \
+  $(B)/renderergles1/tr_model_iqm.o \
+  $(B)/renderergles1/tr_noise.o \
+  $(B)/renderergles1/tr_scene.o \
+  $(B)/renderergles1/tr_shade.o \
+  $(B)/renderergles1/tr_shade_calc.o \
+  $(B)/renderergles1/tr_shader.o \
+  $(B)/renderergles1/tr_shadows.o \
+  $(B)/renderergles1/tr_sky.o \
+  $(B)/renderergles1/tr_surface.o \
+  $(B)/renderergles1/tr_world.o \
   \
-  $(B)/$(RQ3LGLES1DIR)/sdl_gamma.o \
-  $(B)/$(RQ3LGLES1DIR)/sdl_glimp.o
+  $(B)/renderergles1/sdl_gamma.o \
+  $(B)/renderergles1/sdl_glimp.o
+
+Q3ROBJ = \
+  $(B)/renderergl1/tr_animation.o \
+  $(B)/renderergl1/tr_backend.o \
+  $(B)/renderergl1/tr_bsp.o \
+  $(B)/renderergl1/tr_cmds.o \
+  $(B)/renderergl1/tr_curve.o \
+  $(B)/renderergl1/tr_flares.o \
+  $(B)/renderergl1/tr_font.o \
+  $(B)/renderergl1/tr_image.o \
+  $(B)/renderergl1/tr_image_bmp.o \
+  $(B)/renderergl1/tr_image_jpg.o \
+  $(B)/renderergl1/tr_image_pcx.o \
+  $(B)/renderergl1/tr_image_png.o \
+  $(B)/renderergl1/tr_image_tga.o \
+  $(B)/renderergl1/tr_init.o \
+  $(B)/renderergl1/tr_light.o \
+  $(B)/renderergl1/tr_main.o \
+  $(B)/renderergl1/tr_marks.o \
+  $(B)/renderergl1/tr_mesh.o \
+  $(B)/renderergl1/tr_model.o \
+  $(B)/renderergl1/tr_model_iqm.o \
+  $(B)/renderergl1/tr_noise.o \
+  $(B)/renderergl1/tr_scene.o \
+  $(B)/renderergl1/tr_shade.o \
+  $(B)/renderergl1/tr_shade_calc.o \
+  $(B)/renderergl1/tr_shader.o \
+  $(B)/renderergl1/tr_shadows.o \
+  $(B)/renderergl1/tr_sky.o \
+  $(B)/renderergl1/tr_surface.o \
+  $(B)/renderergl1/tr_world.o \
+  \
+  $(B)/renderergles1/sdl_gamma.o \
+  $(B)/renderergles1/sdl_glimp.o
 
 ifneq ($(USE_RENDERER_DLOPEN), 0)
+  Q3RESOBJ += \
+    $(B)/renderergles1/q_shared.o \
+    $(B)/renderergles1/puff.o \
+    $(B)/renderergles1/q_math.o \
+    $(B)/renderergles1/tr_subs.o
+
   Q3ROBJ += \
-    $(B)/$(RQ3LGLES1DIR)/q_shared.o \
-    $(B)/$(RQ3LGLES1DIR)/puff.o \
-    $(B)/$(RQ3LGLES1DIR)/q_math.o \
-    $(B)/$(RQ3LGLES1DIR)/tr_subs.o
+    $(B)/renderergles1/q_shared.o \
+    $(B)/renderergles1/puff.o \
+    $(B)/renderergles1/q_math.o \
+    $(B)/renderergles1/tr_subs.o
 
   Q3R2OBJ += \
-    $(B)/$(RQ3LGLES1DIR)/q_shared.o \
-    $(B)/$(RQ3LGLES1DIR)/puff.o \
-    $(B)/$(RQ3LGLES1DIR)/q_math.o \
-    $(B)/$(RQ3LGLES1DIR)/tr_subs.o
+    $(B)/renderergles1/q_shared.o \
+    $(B)/renderergles1/puff.o \
+    $(B)/renderergles1/q_math.o \
+    $(B)/renderergles1/tr_subs.o
 endif
 
 ifneq ($(USE_INTERNAL_JPEG),0)
   JPGOBJ = \
-    $(B)/$(RQ3LGLES1DIR)/jaricom.o \
-    $(B)/$(RQ3LGLES1DIR)/jcapimin.o \
-    $(B)/$(RQ3LGLES1DIR)/jcapistd.o \
-    $(B)/$(RQ3LGLES1DIR)/jcarith.o \
-    $(B)/$(RQ3LGLES1DIR)/jccoefct.o  \
-    $(B)/$(RQ3LGLES1DIR)/jccolor.o \
-    $(B)/$(RQ3LGLES1DIR)/jcdctmgr.o \
-    $(B)/$(RQ3LGLES1DIR)/jchuff.o   \
-    $(B)/$(RQ3LGLES1DIR)/jcinit.o \
-    $(B)/$(RQ3LGLES1DIR)/jcmainct.o \
-    $(B)/$(RQ3LGLES1DIR)/jcmarker.o \
-    $(B)/$(RQ3LGLES1DIR)/jcmaster.o \
-    $(B)/$(RQ3LGLES1DIR)/jcomapi.o \
-    $(B)/$(RQ3LGLES1DIR)/jcparam.o \
-    $(B)/$(RQ3LGLES1DIR)/jcprepct.o \
-    $(B)/$(RQ3LGLES1DIR)/jcsample.o \
-    $(B)/$(RQ3LGLES1DIR)/jctrans.o \
-    $(B)/$(RQ3LGLES1DIR)/jdapimin.o \
-    $(B)/$(RQ3LGLES1DIR)/jdapistd.o \
-    $(B)/$(RQ3LGLES1DIR)/jdarith.o \
-    $(B)/$(RQ3LGLES1DIR)/jdatadst.o \
-    $(B)/$(RQ3LGLES1DIR)/jdatasrc.o \
-    $(B)/$(RQ3LGLES1DIR)/jdcoefct.o \
-    $(B)/$(RQ3LGLES1DIR)/jdcolor.o \
-    $(B)/$(RQ3LGLES1DIR)/jddctmgr.o \
-    $(B)/$(RQ3LGLES1DIR)/jdhuff.o \
-    $(B)/$(RQ3LGLES1DIR)/jdinput.o \
-    $(B)/$(RQ3LGLES1DIR)/jdmainct.o \
-    $(B)/$(RQ3LGLES1DIR)/jdmarker.o \
-    $(B)/$(RQ3LGLES1DIR)/jdmaster.o \
-    $(B)/$(RQ3LGLES1DIR)/jdmerge.o \
-    $(B)/$(RQ3LGLES1DIR)/jdpostct.o \
-    $(B)/$(RQ3LGLES1DIR)/jdsample.o \
-    $(B)/$(RQ3LGLES1DIR)/jdtrans.o \
-    $(B)/$(RQ3LGLES1DIR)/jerror.o \
-    $(B)/$(RQ3LGLES1DIR)/jfdctflt.o \
-    $(B)/$(RQ3LGLES1DIR)/jfdctfst.o \
-    $(B)/$(RQ3LGLES1DIR)/jfdctint.o \
-    $(B)/$(RQ3LGLES1DIR)/jidctflt.o \
-    $(B)/$(RQ3LGLES1DIR)/jidctfst.o \
-    $(B)/$(RQ3LGLES1DIR)/jidctint.o \
-    $(B)/$(RQ3LGLES1DIR)/jmemmgr.o \
-    $(B)/$(RQ3LGLES1DIR)/jmemnobs.o \
-    $(B)/$(RQ3LGLES1DIR)/jquant1.o \
-    $(B)/$(RQ3LGLES1DIR)/jquant2.o \
-    $(B)/$(RQ3LGLES1DIR)/jutils.o
+    $(B)/renderergles1/jaricom.o \
+    $(B)/renderergles1/jcapimin.o \
+    $(B)/renderergles1/jcapistd.o \
+    $(B)/renderergles1/jcarith.o \
+    $(B)/renderergles1/jccoefct.o  \
+    $(B)/renderergles1/jccolor.o \
+    $(B)/renderergles1/jcdctmgr.o \
+    $(B)/renderergles1/jchuff.o   \
+    $(B)/renderergles1/jcinit.o \
+    $(B)/renderergles1/jcmainct.o \
+    $(B)/renderergles1/jcmarker.o \
+    $(B)/renderergles1/jcmaster.o \
+    $(B)/renderergles1/jcomapi.o \
+    $(B)/renderergles1/jcparam.o \
+    $(B)/renderergles1/jcprepct.o \
+    $(B)/renderergles1/jcsample.o \
+    $(B)/renderergles1/jctrans.o \
+    $(B)/renderergles1/jdapimin.o \
+    $(B)/renderergles1/jdapistd.o \
+    $(B)/renderergles1/jdarith.o \
+    $(B)/renderergles1/jdatadst.o \
+    $(B)/renderergles1/jdatasrc.o \
+    $(B)/renderergles1/jdcoefct.o \
+    $(B)/renderergles1/jdcolor.o \
+    $(B)/renderergles1/jddctmgr.o \
+    $(B)/renderergles1/jdhuff.o \
+    $(B)/renderergles1/jdinput.o \
+    $(B)/renderergles1/jdmainct.o \
+    $(B)/renderergles1/jdmarker.o \
+    $(B)/renderergles1/jdmaster.o \
+    $(B)/renderergles1/jdmerge.o \
+    $(B)/renderergles1/jdpostct.o \
+    $(B)/renderergles1/jdsample.o \
+    $(B)/renderergles1/jdtrans.o \
+    $(B)/renderergles1/jerror.o \
+    $(B)/renderergles1/jfdctflt.o \
+    $(B)/renderergles1/jfdctfst.o \
+    $(B)/renderergles1/jfdctint.o \
+    $(B)/renderergles1/jidctflt.o \
+    $(B)/renderergles1/jidctfst.o \
+    $(B)/renderergles1/jidctint.o \
+    $(B)/renderergles1/jmemmgr.o \
+    $(B)/renderergles1/jmemnobs.o \
+    $(B)/renderergles1/jquant1.o \
+    $(B)/renderergles1/jquant2.o \
+    $(B)/renderergles1/jutils.o
 endif
 
 ifeq ($(ARCH),x86)
@@ -1968,6 +2020,7 @@ Q3OBJ += \
   $(B)/client/opus/lin2log.o \
   $(B)/client/opus/log2lin.o \
   $(B)/client/opus/LPC_analysis_filter.o \
+  $(B)/client/opus/LPC_fit.o \
   $(B)/client/opus/LPC_inv_pred_gain.o \
   $(B)/client/opus/table_LSF_cos.o \
   $(B)/client/opus/NLSF2A.o \
@@ -2001,11 +2054,9 @@ Q3OBJ += \
   $(B)/client/opus/LTP_analysis_filter_FLP.o \
   $(B)/client/opus/LTP_scale_ctrl_FLP.o \
   $(B)/client/opus/noise_shape_analysis_FLP.o \
-  $(B)/client/opus/prefilter_FLP.o \
   $(B)/client/opus/process_gains_FLP.o \
   $(B)/client/opus/regularize_correlations_FLP.o \
   $(B)/client/opus/residual_energy_FLP.o \
-  $(B)/client/opus/solve_LS_FLP.o \
   $(B)/client/opus/warped_autocorrelation_FLP.o \
   $(B)/client/opus/wrappers_FLP.o \
   $(B)/client/opus/autocorrelation_FLP.o \
@@ -2014,7 +2065,6 @@ Q3OBJ += \
   $(B)/client/opus/energy_FLP.o \
   $(B)/client/opus/inner_product_FLP.o \
   $(B)/client/opus/k2a_FLP.o \
-  $(B)/client/opus/levinsondurbin_FLP.o \
   $(B)/client/opus/LPC_inv_pred_gain_FLP.o \
   $(B)/client/opus/pitch_analysis_core_FLP.o \
   $(B)/client/opus/scale_copy_vector_FLP.o \
@@ -2118,6 +2168,11 @@ $(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(LIBSDLMAIN)
 		-o $@ $(Q3OBJ) \
 		$(LIBSDLMAIN) $(CLIENT_LIBS) $(LIBS)
 
+$(B)/renderer_opengles1_$(SHLIBNAME): $(Q3RESOBJ) $(JPGOBJ)
+	$(echo_cmd) "LD $@"
+	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3RESOBJ) $(JPGOBJ) \
+		$(THREAD_LIBS) $(LIBSDLMAIN) $(RENDERER_LIBS) $(LIBS)
+
 $(B)/renderer_opengl1_$(SHLIBNAME): $(Q3ROBJ) $(JPGOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3ROBJ) $(JPGOBJ) \
@@ -2128,7 +2183,13 @@ $(B)/renderer_opengl2_$(SHLIBNAME): $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ)
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) \
 		$(THREAD_LIBS) $(LIBSDLMAIN) $(RENDERER_LIBS) $(LIBS)
 else
-$(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(Q3ROBJ) $(JPGOBJ) $(LIBSDLMAIN)
+$(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(Q3RESOBJ) $(JPGOBJ) $(LIBSDLMAIN)
+	$(echo_cmd) "LD $@"
+	$(Q)$(CC) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) $(NOTSHLIBLDFLAGS) \
+		-o $@ $(Q3OBJ) $(Q3RESOBJ) $(JPGOBJ) \
+		$(LIBSDLMAIN) $(CLIENT_LIBS) $(RENDERER_LIBS) $(LIBS)
+
+$(B)/$(CLIENTBIN)_opengl1$(FULLBINEXT): $(Q3OBJ) $(Q3ROBJ) $(JPGOBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) $(NOTSHLIBLDFLAGS) \
 		-o $@ $(Q3OBJ) $(Q3ROBJ) $(JPGOBJ) \
@@ -2631,20 +2692,37 @@ $(B)/client/win_resource.o: $(SYSDIR)/win_resource.rc $(SYSDIR)/win_manifest.xml
 	$(DO_WINDRES)
 
 
-$(B)/$(RQ3LGLES1DIR)/%.o: $(CMDIR)/%.c
+$(B)/renderergles1/%.o: $(CMDIR)/%.c
 	$(DO_REF_CC)
 
-$(B)/$(RQ3LGLES1DIR)/%.o: $(SDLDIR)/%.c
+$(B)/renderergles1/%.o: $(SDLDIR)/%.c
 	$(DO_REF_CC)
 
-$(B)/$(RQ3LGLES1DIR)/%.o: $(JPDIR)/%.c
+$(B)/renderergles1/%.o: $(JPDIR)/%.c
 	$(DO_REF_CC)
 
-$(B)/$(RQ3LGLES1DIR)/%.o: $(RCOMMONDIR)/%.c
+$(B)/renderergles1/%.o: $(RCOMMONDIR)/%.c
 	$(DO_REF_CC)
 
-$(B)/$(RQ3LGLES1DIR)/%.o: $(RQ3LGLES1DIR)/%.c
+$(B)/renderergles1/%.o: $(RGLES1DIR)/%.c
 	$(DO_REF_CC)
+
+
+$(B)/renderergl1/%.o: $(CMDIR)/%.c
+	$(DO_REF_CC)
+
+$(B)/renderergl1/%.o: $(SDLDIR)/%.c
+	$(DO_REF_CC)
+
+$(B)/renderergl1/%.o: $(JPDIR)/%.c
+	$(DO_REF_CC)
+
+$(B)/renderergl1/%.o: $(RCOMMONDIR)/%.c
+	$(DO_REF_CC)
+
+$(B)/renderergl1/%.o: $(RGL1DIR)/%.c
+	$(DO_REF_CC)
+
 
 $(B)/renderergl2/glsl/%.c: $(RGL2DIR)/glsl/%.glsl
 	$(DO_REF_STR)
@@ -2782,7 +2860,7 @@ $(B)/$(MISSIONPACK)/qcommon/%.asm: $(CMDIR)/%.c $(Q3LCC)
 # MISC
 #############################################################################
 
-OBJ = $(Q3OBJ) $(Q3ROBJ) $(Q3R2OBJ) $(Q3DOBJ) $(JPGOBJ) \
+OBJ = $(Q3OBJ) $(Q3RESOBJ) $(Q3ROBJ) $(Q3R2OBJ) $(Q3DOBJ) $(JPGOBJ) \
   $(MPGOBJ) $(Q3GOBJ) $(Q3CGOBJ) $(MPCGOBJ) $(Q3UIOBJ) $(MPUIOBJ) \
   $(MPGVMOBJ) $(Q3GVMOBJ) $(Q3CGVMOBJ) $(MPCGVMOBJ) $(Q3UIVMOBJ) $(MPUIVMOBJ)
 TOOLSOBJ = $(LBURGOBJ) $(Q3CPPOBJ) $(Q3RCCOBJ) $(Q3LCCOBJ) $(Q3ASMOBJ)
@@ -2803,11 +2881,14 @@ endif
 ifneq ($(BUILD_CLIENT),0)
 	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(CLIENTBIN)$(FULLBINEXT) $(COPYBINDIR)/$(CLIENTBIN)$(FULLBINEXT)
   ifneq ($(USE_RENDERER_DLOPEN),0)
+	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/renderer_opengles1_$(SHLIBNAME) $(COPYBINDIR)/renderer_opengles1_$(SHLIBNAME)
 	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/renderer_opengl1_$(SHLIBNAME) $(COPYBINDIR)/renderer_opengl1_$(SHLIBNAME)
     ifneq ($(BUILD_RENDERER_OPENGL2),0)
 	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/renderer_opengl2_$(SHLIBNAME) $(COPYBINDIR)/renderer_opengl2_$(SHLIBNAME)
     endif
   else
+	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(CLIENTBIN)_opengles1$(FULLBINEXT) $(COPYBINDIR)/$(CLIENTBIN)_opengles1$(FULLBINEXT)
+	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(CLIENTBIN)_opengl1$(FULLBINEXT) $(COPYBINDIR)/$(CLIENTBIN)_opengl1$(FULLBINEXT)
     ifneq ($(BUILD_RENDERER_OPENGL2),0)
 	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(CLIENTBIN)_opengl2$(FULLBINEXT) $(COPYBINDIR)/$(CLIENTBIN)_opengl2$(FULLBINEXT)
     endif

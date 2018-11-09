@@ -3,6 +3,12 @@
 # This file is part of Q3lite source code.
 # See COPYING.txt for license details.
 
+# Make sure we're running as root.
+if [[ $(id -u) -ne 0 ]]; then
+	echo -e "\nThe q3lite script must be run as root, please retry using 'sudo q3lite'.\n"
+	exit 1
+fi
+
 q3dir="/usr/local/games/quake3"
 logged_in_user=$(who | grep -m 1 "." | awk '{print $1}')
 if [ -z "$logged_in_user" ]; then
@@ -32,7 +38,7 @@ xinput_id=""
 # +set vm_* 1 = .so files are used (Linux, Mac)
 # +set vm_* 2 = .qvm files are used (Quake Virtual Machine, default)
 
-settings="+set com_hunkMegs 192 +set com_zoneMegs 24 +set com_soundMegs 16 +set fs_homepath $q3l_homepath +set vm_ui 2 +set vm_cgame 2 +set com_introplayed 1 +set com_protocol 68"
+settings="+set com_hunkMegs 192 +set com_zoneMegs 24 +set com_soundMegs 16 +set sv_pure 0 +set fs_homepath $q3l_homepath +set vm_ui 2 +set vm_game 2 +set vm_cgame 2 +set com_introplayed 1 +set com_protocol 68"
 timedemo="$settings +set timedemo 1 +demo four"
 
 if [ $(uname -m) = armv7l ]; then
@@ -82,14 +88,14 @@ if [ "$1" = "timedemo" ]; then
 		sudo -u $q3l_user $q3dir/quake3.$arch $timedemo
 	else
 		echo -e "Unable to find $q3dir/quake3.$arch binary, exiting...\n"
-		exit 1
+		exit 2
 	fi
 else
 	if [  -f  $q3dir/quake3.$arch ]; then
 		sudo -u $q3l_user $q3dir/quake3.$arch $settings
 	else
 		echo -e "Unable to find $q3dir/quake3.$arch binary, exiting...\n"
-		exit 2
+		exit 3
 	fi
 fi
 
@@ -121,7 +127,6 @@ if [ "$gui" = "yes" ]; then
 else
 	sudo chvt 2
 	sudo chvt 1
-	sudo systemctl restart getty@tty1.service
 fi
 
 exit 0

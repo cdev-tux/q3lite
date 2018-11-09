@@ -28,9 +28,6 @@ Suite 120, Rockville, Maryland 20850 USA.
 */
 // tr_surf.c
 #include "tr_local.h"
-#if idppc_altivec && !defined(__APPLE__)
-#include <altivec.h>
-#endif
 
 /*
 
@@ -1323,4 +1320,5 @@ void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceFlare,		// SF_FLARE,
 	(void(*)(void*))RB_SurfaceEntity,		// SF_ENTITY
 	(void(*)(void*))RB_SurfaceVaoMdvMesh,   // SF_VAO_MDVMESH
+	(void(*)(void*))RB_IQMSurfaceAnimVao,   // SF_VAO_IQM
 };

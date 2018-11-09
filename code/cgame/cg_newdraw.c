@@ -157,7 +157,7 @@ void CG_SelectNextPlayer( void ) {
 
 void CG_SelectPrevPlayer( void ) {
 	CG_CheckOrderPending();
-	if (cg_currentSelectedPlayer.integer > 0 && cg_currentSelectedPlayer.integer < numSortedTeamPlayers) {
+	if (cg_currentSelectedPlayer.integer > 0 && cg_currentSelectedPlayer.integer <= numSortedTeamPlayers) {
 		cg_currentSelectedPlayer.integer--;
 	} else {
 		cg_currentSelectedPlayer.integer = numSortedTeamPlayers;
@@ -1809,8 +1809,14 @@ int CG_ClientNumFromName(const char *p) {
 }
 
 void CG_ShowResponseHead(void) {
-  Menus_OpenByName("voiceMenu");
-	trap_Cvar_Set("cl_conXOffset", "72");
+	float x, y, w, h;
+
+	x = 72;
+	y = w = h = 0;
+	CG_AdjustFrom640( &x, &y, &w, &h );
+
+	Menus_OpenByName("voiceMenu");
+	trap_Cvar_Set("cl_conXOffset", va("%d", (int)x));
 	cg.voiceTime = cg.time;
 }
 

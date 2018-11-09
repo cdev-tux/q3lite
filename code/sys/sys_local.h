@@ -30,10 +30,22 @@ Suite 120, Rockville, Maryland 20850 USA.
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
 
+#ifndef DEDICATED
+#ifdef USE_LOCAL_HEADERS
+#	include "SDL_version.h"
+#else
+#	include <SDL_version.h>
+#endif
+
 // Require a minimum version of SDL
 #define MINSDL_MAJOR 2
 #define MINSDL_MINOR 0
-#define MINSDL_PATCH 4
+#if SDL_VERSION_ATLEAST( 2, 0, 9 )
+#define MINSDL_PATCH 9
+#else
+#define MINSDL_PATCH 0
+#endif
+#endif
 
 // Console
 void CON_Shutdown( void );
