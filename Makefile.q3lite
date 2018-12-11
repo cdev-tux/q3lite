@@ -173,6 +173,8 @@ ifneq ($(GIT_REVISION),)
       VERSION=$(GIT_REVISION)
     endif
   endif
+else
+  @echo "Unable to determine GIT_REVISION."
 endif
 
 #############################################################################
