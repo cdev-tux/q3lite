@@ -8,7 +8,7 @@
   * Raspberry Pi Zero, Zero W
   * Raspberry Pi 1 Model A+, B, B+ w/512 MB Memory
   * Raspberry Pi 2
-  * Raspberry Pi 3, 3B+
+  * Raspberry Pi 3, 3A+, 3B+
   * Pi platforms are supported on Raspbian Desktop and Raspbian Lite
 
 
