@@ -1408,13 +1408,6 @@ void CL_Disconnect( qboolean showMainMenu ) {
 	if (cl_useMumble->integer && mumble_islinked()) {
 		Com_Printf("Mumble: Unlinking from Mumble application\n");
 		mumble_unlink();
-
-	// Stop recording any video
-	if ( CL_VideoRecording() ) {
-		// Finish rendering current frame
-		cls.framecount++;
-		SCR_UpdateScreen();
-		CL_CloseAVI();
 	}
 #endif
 
