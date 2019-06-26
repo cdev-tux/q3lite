@@ -249,7 +249,7 @@ if [ -w $q3l_compile_path ]; then
 	# Enable colorized text for compiler warning/error messages.
 	export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
-	# Determine which Pi model we're compiling on so we can set the proper compiler flags and use all processor cores.
+	# Determine which Pi model we're compiling on so we can set the proper compiler flags.
 	if grep -i -q "^model name\s*:\s*ARMv" /proc/cpuinfo; then
 		while true
 		do
@@ -260,7 +260,6 @@ if [ -w $q3l_compile_path ]; then
 					echo -e "\e[01;37mCompiling Q3lite on a Pi 3, 3A+ or 3B+\n\e[0m"
 				fi
 				ptype="raspberrypi3"
-				cores="4"
 				break
 			fi
 			# Check if we're running on a Pi 2.
@@ -269,7 +268,6 @@ if [ -w $q3l_compile_path ]; then
 					echo -e "\e[01;37mCompiling Q3lite on a Pi 2\n\e[0m"
 				fi
 				ptype="raspberrypi2"
-				cores="4"
 				break
 			fi
 			# Check if we're running on a Pi 1.
@@ -279,7 +277,6 @@ if [ -w $q3l_compile_path ]; then
 					echo -e "\e[01;37mCompiling Q3lite on a Pi 1\n\e[0m"
 				fi
 				ptype="raspberrypi"
-				cores="1"
 				break
 			fi
 			# Check if we're running on a Pi Zero or Zero W.
@@ -288,7 +285,6 @@ if [ -w $q3l_compile_path ]; then
 					echo -e "\e[01;37mCompiling Q3lite on a Pi Zero or Zero W\n\e[0m"
 				fi
 				ptype="raspberrypi"
-				cores="1"
 				break
 			fi
 			# Default to safe settings if we're unable to determine the Pi model.
@@ -296,7 +292,6 @@ if [ -w $q3l_compile_path ]; then
 				echo -e "\e[01;33mCompiling Q3lite on an unknown Pi model\n\e[0m"
 			fi
 			ptype="raspberrypi"
-			cores="1"
 			break
 		done
 	else
@@ -310,7 +305,7 @@ if [ -w $q3l_compile_path ]; then
 	fi
 
 	# Set compile options below.
-	make -j$cores \
+	make -j$(nproc) \
 		V=0 \
 		BUILD_SERVER=1 \
 		BUILD_CLIENT=1 \
