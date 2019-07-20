@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/cdev-tux/q3lite/master/misc/q3lite/img/spacer.gif" width="1" height="256"><img src="https://raw.githubusercontent.com/cdev-tux/q3lite/master/misc/q3lite/img/q3lite_logo.gif" height="256" alt="Q3lite Logo"><img src="https://raw.githubusercontent.com/cdev-tux/q3lite/master/misc/q3lite/img/spacer.gif" width="1" height="256"><img src="https://raw.githubusercontent.com/cdev-tux/q3lite/master/misc/q3lite/img/q3lite-screenshot.jpg" height="256" alt="Q3lite Screenshot">
+<img height=auto width=29% src="https://raw.githubusercontent.com/cdev-tux/q3lite/master/misc/q3lite/img/q3lite_logo.gif" alt="Q3lite Logo"><img height=auto width=69% src="https://raw.githubusercontent.com/cdev-tux/q3lite/master/misc/q3lite/img/q3lite-screenshot.jpg" alt="Q3lite Screenshot">
 
 &nbsp; &nbsp; **Q3lite** is an updated [id Tech 3](https://en.wikipedia.org/wiki/Id_Tech_3) game engine for embedded Linux systems.  The project is a fork of [ioquake3](https://github.com/ioquake/ioq3). Q3lite provides users with an updated version of the engine running on [OpenGL ES](https://www.khronos.org/opengles) and [SDL2](https://www.libsdl.org).  The goal of the project is to add useful new features that enhance the game experience for both players and server administrators while staying in sync with the updated Quake III Arena engine.  The long term plan is to slim the code down to improve performance on low-end embedded processors, hence the name Q3lite.
 
@@ -152,7 +152,7 @@ Please submit patches as a GitHub pull request.
 Quake III Arena screenshot copyright © 1999-2000 [id software](http://www.idsoftware.com).  
 Raspberry Pi is a trademark of the [Raspberry Pi Foundation](https://www.raspberrypi.org/).  
 Q3lite copyright © 2016 - 2019 cdev-tux - [github.com/cdev-tux](https://github.com/cdev-tux).  
-All other trademarks, logos and copyrights are property of their respective owners.  
+All trademarks, logos and copyrights are the property of their respective owners.  
 
 ---
 
